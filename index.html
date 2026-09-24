@@ -9,19 +9,19 @@
   @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Jost:wght@300;400;500;600;700&display=swap');
 
   :root{
-    --bg:#0b0d0b;
-    --surface:#141712;
-    --surface-2:#1c211a;
-    --line:rgba(230,230,222,.14);
-    --line-soft:rgba(230,230,222,.08);
-    --ink:#ede9e0;
-    --ink-dim:#a2a69b;
-    --ink-faint:#6c6f65;
-    --accent:#3c8567;
-    --accent-dim:#1f4c3a;
-    --cta:#7d2436;
-    --cta-hover:#96293e;
-    --cta-ink:#f4ece6;
+    --bg:#0c0c0b;
+    --surface:#161613;
+    --surface-2:#1f1f1a;
+    --line:rgba(235,232,224,.14);
+    --line-soft:rgba(235,232,224,.08);
+    --ink:#f1eee6;
+    --ink-dim:#a6a196;
+    --ink-faint:#6d685d;
+    --accent:#b9ac92;
+    --accent-dim:#4a4436;
+    --cta:#f1eee6;
+    --cta-hover:#ffffff;
+    --cta-ink:#100f0d;
     --shadow: 0 40px 90px -40px rgba(0,0,0,.85);
     color-scheme: dark;
   }
@@ -482,9 +482,9 @@
         <button class="btn btn-ghost js-lead-trigger">Отримати консультацію</button>
       </div>
       <div class="hero-stats">
-        <button class="stat" data-scroll="#testimonials"><b>5.0</b><span>Рейтинг Google ↗</span></button>
-        <button class="stat" data-scroll="#testimonials"><b>8</b><span>Відгуків ↗</span></button>
-        <a class="stat" href="https://www.instagram.com/alian_mebli" target="_blank" rel="noopener"><b>5000+</b><span>В Instagram ↗</span></a>
+        <button class="stat" data-scroll="#testimonials"><b class="count" data-value="5.0">5.0</b><span>Рейтинг Google ↗</span></button>
+        <button class="stat" data-scroll="#testimonials"><b class="count" data-value="8">8</b><span>Відгуків ↗</span></button>
+        <a class="stat" href="https://www.instagram.com/alian_mebli" target="_blank" rel="noopener"><b class="count" data-value="5000+">5000+</b><span>В Instagram ↗</span></a>
         <a class="stat" href="https://maps.app.goo.gl/AQc3qqnELUtauo9x9" target="_blank" rel="noopener"><b>Київ</b><span>Адреса на карті ↗</span></a>
       </div>
     </div>
@@ -1016,6 +1016,32 @@
     });
 
     update();
+  })();
+
+  // Hero stat count-up
+  (function () {
+    const els = document.querySelectorAll('.hero-stats .count');
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function animate(el) {
+      const raw = el.dataset.value || '';
+      const m = raw.match(/^([\d.]+)(.*)$/);
+      if (!m) return;
+      const target = parseFloat(m[1]);
+      const suffix = m[2] || '';
+      const decimals = m[1].includes('.') ? m[1].split('.')[1].length : 0;
+      if (prefersReduced) { el.textContent = raw; return; }
+      const duration = 1300;
+      const start = performance.now();
+      function tick(now) {
+        const p = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = (target * eased).toFixed(decimals) + suffix;
+        if (p < 1) requestAnimationFrame(tick);
+        else el.textContent = raw;
+      }
+      requestAnimationFrame(tick);
+    }
+    setTimeout(() => els.forEach(animate), 850);
   })();
 </script>
 
