@@ -2,8 +2,11 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="ALIAN MEBLI — меблі на замовлення в Києві: кухні, гардеробні, меблі для ванної та спальні.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alian Mebli — Меблі на замовлення у Києві</title>
+<meta name="description" content="Alian Mebli — кухні, гардеробні, меблі для ванної та спальні на замовлення в Києві. Індивідуальний дизайн, заміри та монтаж під ключ.">
+</head>
+<body>
 <title>Alian Mebli</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Jost:wght@300;400;500;600;700&display=swap');
@@ -441,9 +444,6 @@
     .hero-media{ animation:none; }
   }
 </style>
-</head>
-<body>
-
 
 <header id="site-header">
   <div class="wrap nav">
@@ -760,7 +760,9 @@
           </select>
         </div>
         <div class="field"><span>Коментар</span><textarea name="comment" id="leadComment" placeholder="Розкажіть коротко про проєкт"></textarea></div>
+        <input type="text" name="website" id="leadWebsite" autocomplete="off" tabindex="-1" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;" aria-hidden="true">
         <button type="submit" class="btn btn-primary full">Надіслати заявку</button>
+        <p id="leadError" class="lead-error" hidden style="color:#c0392b; font-size:14px; margin:0;">Не вдалося надіслати. Спробуйте ще раз або подзвоніть нам.</p>
       </form>
     </div>
     <div class="modal-success" id="leadSuccess" hidden>
@@ -900,11 +902,37 @@
     if (leadOverlay.classList.contains('open')) closeLeadModal();
     if (lightbox.classList.contains('open')) lightbox.classList.remove('open');
   });
-  leadForm.addEventListener('submit', (e) => {
+  const LEAD_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxIA6Hgw0-BmjEo1Oe2H2K7_HKxFFkc_OMdKKstpTFx7pqw1vRVY8YH2gm883fxDmPSAA/exec';
+  const leadError = document.getElementById('leadError');
+  const leadSubmitBtn = leadForm.querySelector('button[type="submit"]');
+
+  leadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    // No backend yet — this is a UI-ready stub. Wire up to Google Sheets / Telegram bot later.
-    leadFormWrap.hidden = true;
-    leadSuccess.hidden = false;
+    leadError.hidden = true;
+    const fd = new FormData(leadForm);
+    const payload = {
+      name: fd.get('name') || '',
+      phone: fd.get('phone') || '',
+      topic: fd.get('topic') || '',
+      comment: fd.get('comment') || '',
+      website: fd.get('website') || ''
+    };
+    leadSubmitBtn.disabled = true;
+    try {
+      const res = await fetch(LEAD_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'unknown');
+      leadFormWrap.hidden = true;
+      leadSuccess.hidden = false;
+    } catch (err) {
+      leadError.hidden = false;
+    } finally {
+      leadSubmitBtn.disabled = false;
+    }
   });
 
   // Calculator
