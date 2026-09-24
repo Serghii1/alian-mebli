@@ -243,13 +243,22 @@
   }
   .filter-chip.active, .filter-chip:hover{ border-color:var(--accent); color:var(--ink); background:var(--surface-2); }
 
-  .gallery{ display:grid; grid-template-columns:1fr; gap:16px; margin-top:32px; }
-  @media (min-width:560px){ .gallery{ grid-template-columns:repeat(2,1fr); gap:16px; } }
+  .gallery{
+    display:flex; gap:12px; margin-top:28px;
+    overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+    scrollbar-width:none; margin-inline:-20px; padding-inline:20px; padding-bottom:4px;
+  }
+  .gallery::-webkit-scrollbar{ display:none; }
+  @media (min-width:560px){
+    .gallery{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; overflow-x:visible; margin-inline:0; padding-inline:0; }
+  }
   @media (min-width:900px){ .gallery{ grid-template-columns:repeat(3,1fr); gap:18px; } }
   .g-item{
     position:relative; overflow:hidden; border-radius:2px; aspect-ratio:4/5; cursor:zoom-in;
     background:var(--surface); grid-column:auto; grid-row:auto;
+    flex:0 0 72%; scroll-snap-align:start;
   }
+  @media (min-width:560px){ .g-item{ flex:initial; } }
   @media (min-width:560px){
     .g-item.big{ grid-column:span 2; aspect-ratio:8/5; }
   }
