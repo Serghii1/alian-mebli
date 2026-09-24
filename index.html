@@ -29,6 +29,7 @@
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{
+    position:relative;
     margin:0;
     background:var(--bg);
     color:var(--ink);
@@ -37,6 +38,12 @@
     line-height:1.65;
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
+  }
+  body::before{
+    content:'';
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    opacity:.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   img{max-width:100%;display:block;}
   a{color:inherit;}
@@ -55,10 +62,9 @@
   section{ padding-block: clamp(56px, 10vw, 128px); }
   .eyebrow{
     font-family:'Jost', sans-serif;
-    font-size:12px;
+    font-size:13px;
     font-weight:600;
-    letter-spacing:.18em;
-    text-transform:uppercase;
+    letter-spacing:.06em;
     color:var(--accent);
   }
   .btn{
@@ -192,7 +198,7 @@
   }
   .stat:hover{ transform:translateY(-3px); opacity:.85; }
   .stat b{ font-family:'Bodoni Moda', serif; font-size:26px; font-weight:600; font-variant-numeric: tabular-nums; }
-  .stat span{ font-size:12px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.08em; }
+  .stat span{ font-size:12px; color:var(--ink-faint); letter-spacing:.08em; }
   @keyframes rise{ from{ opacity:0; transform:translateY(18px); } to{ opacity:1; transform:translateY(0); } }
   @keyframes pulse-ring{ 0%{ box-shadow:0 0 0 0 rgba(60,133,103,.5);} 100%{ box-shadow:0 0 0 18px rgba(60,133,103,0);} }
   .pulse-target{ animation: pulse-ring 1s ease-out 2; border-radius:4px; }
@@ -263,7 +269,7 @@
     background:linear-gradient(0deg, rgba(8,9,7,.94), rgba(8,9,7,0));
   }
   .g-item .cap b{ font-family:'Bodoni Moda', serif; font-weight:600; font-size:15px; display:block; }
-  .g-item .cap span{ font-size:11px; color:var(--accent); text-transform:uppercase; letter-spacing:.08em; }
+  .g-item .cap span{ font-size:11px; color:var(--accent); letter-spacing:.08em; }
 
   /* ---------- Process ---------- */
   .process-list{ display:flex; flex-direction:column; }
@@ -280,7 +286,7 @@
     background:var(--surface); border:1px solid var(--line-soft); border-radius:3px; padding:clamp(22px,3vw,32px);
     display:flex; flex-direction:column; gap:26px;
   }
-  .calc-label{ font-size:12.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); display:block; margin-bottom:12px; }
+  .calc-label{ font-size:12.5px; letter-spacing:.08em; color:var(--ink-faint); display:block; margin-bottom:12px; }
   .calc-label b{ color:var(--ink); font-family:'Bodoni Moda',serif; font-size:15px; text-transform:none; letter-spacing:0; font-weight:600; }
   .calc-pills{ display:flex; flex-wrap:wrap; gap:8px; }
   .pill{
@@ -295,17 +301,20 @@
   .check{ display:flex; align-items:center; gap:12px; font-size:14.5px; color:var(--ink-dim); cursor:pointer; }
   .check input{ width:18px; height:18px; accent-color:var(--accent); flex:none; }
   .calc-viz-wrap{ display:flex; flex-direction:column; gap:10px; }
-  .calc-viz-label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); }
+  .calc-viz-label{ font-size:11.5px; letter-spacing:.06em; color:var(--ink-faint); }
   .calc-viz{ background:var(--bg); border:1px solid var(--line-soft); border-radius:2px; padding:12px; }
   .calc-viz svg{ width:100%; height:auto; display:block; }
   .cshape{ fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
   .cshape-b{ fill:var(--accent-dim); stroke:var(--accent); stroke-width:1.5; }
+  .room-wall{ stroke:var(--line); stroke-width:2; fill:none; }
+  .dim-line{ stroke:var(--ink-faint); stroke-width:1; fill:none; }
+  .svg-label{ fill:var(--ink-dim); font-family:'Jost',sans-serif; font-size:12px; font-variant-numeric:tabular-nums; }
   .calc-photo{ position:relative; border-radius:2px; overflow:hidden; aspect-ratio:16/9; }
   .calc-photo img{ width:100%; height:100%; object-fit:cover; }
   .calc-photo span{
     position:absolute; left:0; right:0; bottom:0; padding:10px 14px;
     background:linear-gradient(0deg, rgba(8,9,7,.9), rgba(8,9,7,0));
-    font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-dim);
+    font-size:11.5px; letter-spacing:.06em; color:var(--ink-dim);
   }
   .calc-price{ border-top:1px solid var(--line); padding-top:20px; }
   .calc-price b{ font-family:'Bodoni Moda', serif; font-size:30px; font-weight:600; display:block; margin-block:4px 8px; font-variant-numeric:tabular-nums; }
@@ -334,7 +343,7 @@
   .contact-card{ background:var(--surface); border:1px solid var(--line-soft); border-radius:3px; padding:clamp(24px,4vw,44px); }
   .c-row{ display:flex; justify-content:space-between; gap:16px; align-items:flex-start; padding-block:16px; border-top:1px solid var(--line); flex-wrap:wrap; }
   .c-row:first-of-type{ border-top:none; padding-top:0; }
-  .c-row span.label{ color:var(--ink-faint); font-size:12.5px; text-transform:uppercase; letter-spacing:.07em; }
+  .c-row span.label{ color:var(--ink-faint); font-size:12.5px; letter-spacing:.07em; }
   .c-row a, .c-row p{ font-size:16px; text-decoration:none; margin:0; }
   .c-row a:hover{ color:var(--accent); }
   .contact-actions{ display:flex; flex-wrap:wrap; gap:12px; margin-top:26px; }
@@ -387,7 +396,7 @@
   .modal-card h3{ font-size:26px; margin-block:12px 20px; font-weight:600; }
   #leadForm{ display:flex; flex-direction:column; gap:16px; }
   .field{ display:flex; flex-direction:column; gap:8px; }
-  .field span{ font-size:12.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); }
+  .field span{ font-size:12.5px; letter-spacing:.06em; color:var(--ink-faint); }
   .field input, .field select, .field textarea{
     min-height:48px; background:var(--surface-2); border:1px solid var(--line); border-radius:2px;
     color:var(--ink); font-family:'Jost',sans-serif; font-size:15px; padding:12px 14px;
@@ -439,7 +448,7 @@
     </ul>
     <div class="nav-cta">
       <a class="nav-phone" href="tel:+380507128146">050 712 8146</a>
-      <button class="btn btn-primary js-lead-trigger">Зв'язатися</button>
+      <button class="btn btn-primary js-lead-trigger">Звʼязатися</button>
       <button class="hamburger" id="menuToggle" aria-label="Меню" aria-expanded="false"><span></span><span></span><span></span></button>
     </div>
   </div>
@@ -553,7 +562,7 @@
           <div class="cap"><span>Гардеробні</span><b>Шафа з відкритими полицями</b></div>
         </div>
         <div class="g-item reveal" data-cat="bathroom">
-          <img src="images/bathroom-vanity-wood.jpg" alt="Тумба під раковину з дерев'яними відкритими полицями" loading="lazy">
+          <img src="images/bathroom-vanity-wood.jpg" alt="Тумба під раковину з деревʼяними відкритими полицями" loading="lazy">
           <div class="cap"><span>Ванна</span><b>Тумба з горіховим шпоном</b></div>
         </div>
         <div class="g-item reveal" data-cat="bathroom">
@@ -572,12 +581,12 @@
     <div class="wrap">
       <div class="section-head reveal">
         <p class="eyebrow">Як ми працюємо</p>
-        <h2>П'ять кроків до готових меблів</h2>
+        <h2>Пʼять кроків до готових меблів</h2>
         <p>Прозорий процес від першого контакту до монтажу — без зайвих ітерацій.</p>
       </div>
       <div class="process-list">
         <div class="p-step reveal"><div class="p-num">01</div><div><h3>Заявка та консультація</h3><p>Телефонуєте або пишете в месенджер — обговорюємо задачу, приміщення та орієнтовний бюджет.</p></div></div>
-        <div class="p-step reveal"><div class="p-num">02</div><div><h3>Замір на об'єкті</h3><p>Виїжджаємо на місце, знімаємо точні розміри та фіксуємо особливості приміщення.</p></div></div>
+        <div class="p-step reveal"><div class="p-num">02</div><div><h3>Замір на обʼєкті</h3><p>Виїжджаємо на місце, знімаємо точні розміри та фіксуємо особливості приміщення.</p></div></div>
         <div class="p-step reveal"><div class="p-num">03</div><div><h3>3D-проєкт та узгодження</h3><p>Готуємо візуалізацію, підбираємо матеріали й фурнітуру, узгоджуємо кожну деталь перед виробництвом.</p></div></div>
         <div class="p-step reveal"><div class="p-num">04</div><div><h3>Виготовлення</h3><p>Виробляємо меблі за затвердженим проєктом, тримаючи узгоджені терміни.</p></div></div>
         <div class="p-step reveal"><div class="p-num">05</div><div><h3>Доставка та монтаж</h3><p>Привозимо, збираємо та встановлюємо готові меблі на місці — акуратно і без зайвого клопоту.</p></div></div>
@@ -628,8 +637,8 @@
         </div>
         <div class="calc-result">
           <div class="calc-viz-wrap">
-            <span class="calc-viz-label">Умовна схема розкладки модулів</span>
-            <div class="calc-viz"><svg id="calcSvg" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet"></svg></div>
+            <span class="calc-viz-label">Умовний ескіз, вид зверху</span>
+            <div class="calc-viz"><svg id="calcSvg" viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet"></svg></div>
           </div>
           <div class="calc-photo">
             <img id="calcPhoto" src="images/kitchen-modern-black.jpg" alt="Приклад реалізації у подібному стилі">
@@ -734,7 +743,7 @@
       <p class="eyebrow">Заявка на консультацію</p>
       <h3 id="leadTitle">Розкажіть про свій проєкт</h3>
       <form id="leadForm">
-        <div class="field"><span>Ім'я</span><input type="text" name="name" required autocomplete="name" placeholder="Ваше ім'я"></div>
+        <div class="field"><span>Імʼя</span><input type="text" name="name" required autocomplete="name" placeholder="Ваше імʼя"></div>
         <div class="field"><span>Телефон</span><input type="tel" name="phone" required autocomplete="tel" placeholder="+380"></div>
         <div class="field"><span>Що цікавить</span>
           <select name="topic" id="leadTopic">
@@ -752,7 +761,7 @@
     <div class="modal-success" id="leadSuccess" hidden>
       <div class="ok-mark">✓</div>
       <h3>Дякуємо!</h3>
-      <p style="color:var(--ink-dim); margin:0;">Заявку прийнято. Ми зв'яжемось з вами найближчим часом за вказаним номером.</p>
+      <p style="color:var(--ink-dim); margin:0;">Заявку прийнято. Ми звʼяжемось з вами найближчим часом за вказаним номером.</p>
     </div>
     <div class="modal-alt">
       <p>Або одразу:</p>
@@ -925,39 +934,59 @@
 
     function drawSvg() {
       const w = state.width;
-      let shapes = '';
+      const minPx = 90, maxPx = 340;
+      const runW = minPx + (w - 1.5) / 4.5 * (maxPx - minPx);
+      const cx = 200;
+      const runX = cx - runW / 2;
+      const runRight = cx + runW / 2;
+      const runY = 34;
+      const runH = 32;
+      const footH = state.room === 'bedroom' ? 96 : runH;
+
+      let walls = `<line class="room-wall" x1="18" y1="20" x2="382" y2="20"/>
+        <line class="room-wall" x1="18" y1="20" x2="18" y2="42"/>
+        <line class="room-wall" x1="382" y1="20" x2="382" y2="42"/>`;
+
+      let glyphs = '';
       if (state.room === 'kitchen') {
-        const n = Math.max(2, Math.round(w / 0.6));
-        const mw = 380 / n;
-        for (let i = 0; i < n; i++) {
-          const x = 10 + i * mw;
-          shapes += `<rect class="cshape" x="${x}" y="110" width="${mw - 4}" height="76" rx="2"/>`;
-          shapes += `<rect class="cshape" x="${x}" y="40" width="${mw - 4}" height="54" rx="2"/>`;
-        }
+        glyphs += `<rect class="cshape" x="${runX}" y="${runY}" width="${runW}" height="${runH}" rx="2"/>`;
+        const sinkX = runX + runW * 0.28;
+        glyphs += `<rect class="cshape-b" x="${sinkX - 11}" y="${runY + 7}" width="22" height="18" rx="4"/>`;
+        const hobX = runX + runW * 0.7;
+        [[-6, -5], [6, -5], [-6, 5], [6, 5]].forEach(([dx, dy]) => {
+          glyphs += `<circle class="cshape-b" cx="${hobX + dx}" cy="${runY + runH / 2 + dy}" r="2.4"/>`;
+        });
       } else if (state.room === 'wardrobe') {
-        const n = Math.max(2, Math.round(w / 0.5));
-        const mw = 380 / n;
-        for (let i = 0; i < n; i++) {
-          const x = 10 + i * mw;
-          shapes += `<rect class="cshape" x="${x}" y="26" width="${mw - 4}" height="158" rx="2"/>`;
-          shapes += `<circle class="cshape-b" cx="${x + mw - 16}" cy="105" r="2.2"/>`;
+        glyphs += `<rect class="cshape" x="${runX}" y="${runY}" width="${runW}" height="${runH}" rx="2"/>`;
+        const doorW = 20;
+        const n = Math.max(2, Math.round(runW / doorW));
+        for (let i = 1; i < n; i++) {
+          const x = runX + (runW / n) * i;
+          glyphs += `<line class="dim-line" x1="${x}" y1="${runY + 3}" x2="${x}" y2="${runY + runH - 3}"/>`;
         }
+        glyphs += `<path class="dim-line" d="M ${cx - 7} ${runY + runH + 8} L ${cx} ${runY + runH + 2} L ${cx + 7} ${runY + runH + 8}"/>`;
       } else if (state.room === 'bathroom') {
-        const vw = Math.min(360, 60 + w * 50);
-        const x = (400 - vw) / 2;
-        shapes += `<rect class="cshape" x="${x}" y="120" width="${vw}" height="56" rx="2"/>`;
-        shapes += `<ellipse class="cshape-b" cx="${x + vw / 2}" cy="112" rx="34" ry="14"/>`;
-        shapes += `<rect class="cshape" x="${x + vw / 2 - 44}" y="30" width="88" height="60" rx="2"/>`;
+        glyphs += `<rect class="cshape" x="${runX}" y="${runY}" width="${runW}" height="${runH}" rx="2"/>`;
+        const sinkCx = runX + runW * 0.3;
+        glyphs += `<ellipse class="cshape-b" cx="${sinkCx}" cy="${runY + runH / 2}" rx="15" ry="9"/>`;
+        glyphs += `<rect class="cshape-b" x="${runX + runW * 0.62}" y="${runY + 6}" width="26" height="${runH - 12}" rx="3"/>`;
       } else {
-        const bedW = 150;
-        const wardW = Math.max(60, (w - 1.6) * 60);
-        shapes += `<rect class="cshape-b" x="20" y="70" width="${bedW}" height="110" rx="3"/>`;
-        shapes += `<rect class="cshape" x="20" y="52" width="${bedW}" height="16" rx="2"/>`;
-        shapes += `<rect class="cshape" x="4" y="140" width="14" height="30" rx="2"/>`;
-        shapes += `<rect class="cshape" x="${20 + bedW + 2}" y="140" width="14" height="30" rx="2"/>`;
-        shapes += `<rect class="cshape" x="${20 + bedW + 24}" y="24" width="${wardW}" height="156" rx="2"/>`;
+        const bedW = Math.min(runW * 0.62, 180);
+        const wardW = Math.max(46, runW - bedW - 10);
+        glyphs += `<rect class="cshape-b" x="${runX}" y="${runY}" width="${bedW}" height="${footH}" rx="3"/>`;
+        glyphs += `<ellipse class="cshape" cx="${runX + bedW * 0.3}" cy="${runY + 14}" rx="16" ry="9"/>`;
+        glyphs += `<ellipse class="cshape" cx="${runX + bedW * 0.7}" cy="${runY + 14}" rx="16" ry="9"/>`;
+        glyphs += `<rect class="cshape" x="${runX + bedW + 10}" y="${runY}" width="${wardW}" height="${runH}" rx="2"/>`;
       }
-      svg.innerHTML = shapes;
+
+      const dimY = runY + footH + 16;
+      const dim = `
+        <line class="dim-line" x1="${runX}" y1="${dimY}" x2="${runRight}" y2="${dimY}"/>
+        <line class="dim-line" x1="${runX}" y1="${dimY - 5}" x2="${runX}" y2="${dimY + 5}"/>
+        <line class="dim-line" x1="${runRight}" y1="${dimY - 5}" x2="${runRight}" y2="${dimY + 5}"/>
+        <text class="svg-label" x="${cx}" y="${dimY + 20}" text-anchor="middle">${w.toFixed(1)} м</text>`;
+
+      svg.innerHTML = walls + glyphs + dim;
     }
 
     function computePrice() {
