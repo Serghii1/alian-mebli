@@ -294,6 +294,8 @@
   .calc-checks{ display:flex; flex-direction:column; gap:12px; }
   .check{ display:flex; align-items:center; gap:12px; font-size:14.5px; color:var(--ink-dim); cursor:pointer; }
   .check input{ width:18px; height:18px; accent-color:var(--accent); flex:none; }
+  .calc-viz-wrap{ display:flex; flex-direction:column; gap:10px; }
+  .calc-viz-label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); }
   .calc-viz{ background:var(--bg); border:1px solid var(--line-soft); border-radius:2px; padding:12px; }
   .calc-viz svg{ width:100%; height:auto; display:block; }
   .cshape{ fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
@@ -625,7 +627,10 @@
           </div>
         </div>
         <div class="calc-result">
-          <div class="calc-viz"><svg id="calcSvg" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet"></svg></div>
+          <div class="calc-viz-wrap">
+            <span class="calc-viz-label">Умовна схема розкладки модулів</span>
+            <div class="calc-viz"><svg id="calcSvg" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet"></svg></div>
+          </div>
           <div class="calc-photo">
             <img id="calcPhoto" src="images/kitchen-modern-black.jpg" alt="Приклад реалізації у подібному стилі">
             <span>Приклад реалізації в подібному стилі</span>
