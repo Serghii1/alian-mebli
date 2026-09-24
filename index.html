@@ -372,6 +372,11 @@
   .calc-price{ border-top:1px solid var(--line); padding-top:20px; }
   .calc-price b{ font-family:'Bodoni Moda', serif; font-size:30px; font-weight:600; display:block; margin-block:4px 8px; font-variant-numeric:tabular-nums; }
   .calc-price small{ color:var(--ink-faint); font-size:12.5px; line-height:1.5; display:block; }
+  .approx-badge{
+    display:inline-block; margin-left:8px; padding:2px 9px; border-radius:999px;
+    border:1px solid var(--accent-dim); color:var(--accent); font-size:10.5px; letter-spacing:.04em;
+    text-transform:none; vertical-align:middle;
+  }
 
   /* ---------- Testimonials ---------- */
   .t-top{ display:flex; flex-wrap:wrap; gap:36px; align-items:center; margin-bottom:40px; padding-bottom:32px; border-bottom:1px solid var(--line); }
@@ -656,10 +661,10 @@
           <div>
             <span class="calc-label">Тип меблів</span>
             <div class="calc-pills" id="calcRoom">
-              <button class="pill active" data-room="kitchen" data-rate-b="16000" data-rate-s="24000" data-rate-p="38000">Кухня</button>
-              <button class="pill" data-room="wardrobe" data-rate-b="12000" data-rate-s="18000" data-rate-p="28000">Гардеробна / шафа</button>
-              <button class="pill" data-room="bathroom" data-rate-b="14000" data-rate-s="20000" data-rate-p="32000">Ванна кімната</button>
-              <button class="pill" data-room="bedroom" data-rate-b="13000" data-rate-s="19000" data-rate-p="30000">Спальня</button>
+              <button class="pill active" data-room="kitchen" data-fixed-b="40000" data-rate-b="25000" data-fixed-s="60000" data-rate-s="38000" data-fixed-p="95000" data-rate-p="60000">Кухня</button>
+              <button class="pill" data-room="wardrobe" data-fixed-b="30000" data-rate-b="19000" data-fixed-s="45000" data-rate-s="29000" data-fixed-p="71000" data-rate-p="45000">Гардеробна / шафа</button>
+              <button class="pill" data-room="bathroom" data-fixed-b="34000" data-rate-b="21000" data-fixed-s="51000" data-rate-s="32000" data-fixed-p="81000" data-rate-p="51000">Ванна кімната</button>
+              <button class="pill" data-room="bedroom" data-fixed-b="32000" data-rate-b="20000" data-fixed-s="48000" data-rate-s="30000" data-fixed-p="76000" data-rate-p="48000">Спальня</button>
             </div>
           </div>
           <div>
@@ -694,10 +699,10 @@
             <span>Приклад реалізації в подібному стилі</span>
           </div>
           <div class="calc-price">
-            <span class="calc-label">Орієнтовна вартість</span>
+            <span class="calc-label">Орієнтовна вартість <span class="approx-badge">≈ порядок цін, не фіксована сума</span></span>
             <b id="calcPriceOut">36 000 – 44 000 ₴</b>
-            <small>Орієнтовний розрахунок для ознайомлення, не є офіційним прайсом ALIAN MEBLI.
-              Точну вартість визначаємо після безкоштовного заміру та розробки проєкту.</small>
+            <small>Це орієнтир по порядку цін на основі середньої вартості матеріалів і фурнітури, а не остаточний прайс.
+              Точну вартість визначаємо індивідуально після безкоштовного заміру та розробки проєкту.</small>
           </div>
           <button class="btn btn-primary full" id="calcToLead">Залишити заявку</button>
         </div>
@@ -1065,8 +1070,10 @@
 
     function computePrice() {
       const btn = document.querySelector(`#calcRoom .pill[data-room="${state.room}"]`);
-      const rate = parseFloat(btn.dataset['rate' + state.tier.toUpperCase()]);
-      let total = rate * state.width;
+      const tier = state.tier.toUpperCase();
+      const fixed = parseFloat(btn.dataset['fixed' + tier]);
+      const rate = parseFloat(btn.dataset['rate' + tier]);
+      let total = fixed + rate * state.width;
       let pct = 0;
       checks.forEach(c => { if (c.checked) pct += parseFloat(c.value); });
       total *= (1 + pct / 100);
