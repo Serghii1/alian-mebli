@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+</head>
+<body>
+<title>Конфігуратор кухні</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500,600;1,6..96,400&family=Jost:wght@300;400;500;600;700&display=swap');
+
+  :root{
+    --bg:#0c0c0b;
+    --surface:#16150f;
+    --surface-2:#1e1c15;
+    --line:rgba(235,232,224,.14);
+    --line-soft:rgba(235,232,224,.08);
+    --ink:#f1eee6;
+    --ink-dim:#a9a292;
+    --ink-faint:#6f695b;
+    --accent:#c2a876;
+    --accent-dim:#4c4230;
+    --danger:#c0725a;
+    --ok:#7f9f74;
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Jost',sans-serif; -webkit-font-smoothing:antialiased;
+    padding-inline:max(18px, env(safe-area-inset-left,0px)) max(18px, env(safe-area-inset-right,0px));
+    padding-block:calc(22px + env(safe-area-inset-top,0px)) calc(40px + env(safe-area-inset-bottom,0px));
+  }
+  h1,h2,h3{ font-family:'Bodoni Moda',serif; margin:0; font-weight:600; text-wrap:balance; }
+  .wrap{ max-width:1080px; margin-inline:auto; display:flex; flex-direction:column; gap:28px; }
+
+  header{ display:flex; flex-direction:column; gap:6px; }
+  .eyebrow{ font-size:11.5px; letter-spacing:.09em; color:var(--accent); font-weight:600; }
+  header h1{ font-size:clamp(24px,4vw,32px); }
+  header p{ margin:0; max-width:62ch; color:var(--ink-dim); font-size:14.5px; line-height:1.6; }
+
+  .layout{ display:grid; grid-template-columns:1fr; gap:24px; }
+  @media (min-width:920px){ .layout{ grid-template-columns:1.2fr 1fr; align-items:start; } }
+
+  .card{
+    background:var(--surface); border:1px solid var(--line-soft); border-radius:12px;
+    padding:clamp(18px,3vw,26px);
+  }
+
+  /* ---------- Illustration ---------- */
+  .illust-wrap{ position:relative; border-radius:10px; overflow:hidden; background:#0a0a08; }
+  .illust-wrap svg{ display:block; width:100%; height:auto; }
+  .sheen{
+    position:absolute; inset:0; pointer-events:none; mix-blend-mode:overlay; opacity:.5;
+    background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.32) 48%, transparent 62%);
+    background-size:260% 260%; animation: sheen-move 7s ease-in-out infinite;
+  }
+  @keyframes sheen-move{
+    0%,100%{ background-position:120% -20%; }
+    50%{ background-position:-20% 120%; }
+  }
+  @media (prefers-reduced-motion: reduce){ .sheen{ animation:none; background-position:20% 20%; } }
+
+  .combo-line{ margin-top:14px; font-size:13px; color:var(--ink-dim); }
+  .combo-line b{ color:var(--ink); font-weight:600; }
+
+  /* ---------- Controls ---------- */
+  .group-label{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px; }
+  .group-label b{ font-family:'Bodoni Moda',serif; font-size:14px; font-weight:600; }
+  .group-label span{ font-size:11.5px; color:var(--accent); }
+
+  .swatches{ display:flex; gap:9px; flex-wrap:wrap; }
+  .swatch{
+    position:relative; width:38px; height:38px; border-radius:8px;
+    border:1px solid var(--line); cursor:pointer;
+    transition:transform .18s, border-color .2s;
+  }
+  .swatch:hover{ transform:translateY(-2px); }
+  .swatch.active{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+  .swatch.active::after{
+    content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:13px; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.7);
+  }
+
+  .swatch-photo{ background-size:cover; background-position:center; width:46px; height:46px; }
+  .swatch-photo.active::after{ background:rgba(241,238,230,.85); color:#141310; text-shadow:none; border-radius:8px; }
+
+  .style-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .style-btn{
+    display:flex; align-items:center; gap:8px;
+    padding:6px 14px 6px 6px; border-radius:999px; border:1px solid var(--line); background:transparent;
+    color:var(--ink-dim); font-family:'Jost',sans-serif; font-size:12.5px; font-weight:500; cursor:pointer;
+    transition:.2s;
+  }
+  .style-btn .thumb{
+    width:28px; height:28px; border-radius:50%; background:var(--surface-2); flex:none;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .style-btn .thumb svg{ width:16px; height:16px; }
+  .style-btn:hover{ border-color:var(--accent); color:var(--ink); }
+  .style-btn.active{ border-color:var(--accent); background:var(--accent-dim); color:var(--ink); }
+
+  .control-block + .control-block{ margin-top:20px; padding-top:20px; border-top:1px solid var(--line-soft); }
+
+  input[type=range]{ width:100%; height:3px; background:var(--line); border-radius:2px; accent-color:var(--ink); }
+
+  .approx-badge{
+    display:inline-block; padding:2px 9px; border-radius:999px;
+    border:1px solid var(--accent-dim); color:var(--accent); font-size:10.5px; letter-spacing:.04em;
+  }
+  .price-out{
+    font-family:'Bodoni Moda',serif; font-size:26px; font-weight:600; color:var(--ink);
+    font-variant-numeric:tabular-nums; margin-top:8px;
+  }
+  .price-note{ margin:8px 0 0; font-size:11.5px; color:var(--ink-faint); line-height:1.5; }
+
+  /* ---------- Upload ---------- */
+  .upload{
+    border:1.5px dashed var(--line); border-radius:10px; padding:20px; text-align:center;
+    cursor:pointer; transition:border-color .2s, background .2s;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .upload:hover, .upload.drag{ border-color:var(--accent); background:var(--surface-2); }
+  .upload svg{ width:22px; height:22px; color:var(--ink-faint); }
+  .upload span{ font-size:12.5px; color:var(--ink-dim); }
+  .upload small{ color:var(--ink-faint); font-size:11px; }
+  .upload input{ display:none; }
+
+  .preview{ display:none; gap:12px; align-items:center; margin-top:12px; }
+  .preview.show{ display:flex; }
+  .preview img{ width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid var(--line); }
+  .preview .meta{ flex:1; font-size:12.5px; color:var(--ink-dim); }
+  .preview button{
+    background:none; border:1px solid var(--line); color:var(--ink-faint); border-radius:999px;
+    width:28px; height:28px; cursor:pointer; font-size:13px; flex:none;
+  }
+  .preview button:hover{ border-color:var(--danger); color:var(--danger); }
+
+  /* ---------- Generate ---------- */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%;
+    min-height:50px; border-radius:999px; border:1px solid var(--ink); cursor:pointer;
+    font-family:'Jost',sans-serif; font-weight:600; font-size:14.5px;
+    background:var(--ink); color:#141310; transition:transform .25s, background .25s;
+  }
+  .btn:hover{ transform:translateY(-2px); background:#fff; }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+  .btn svg{ width:17px; height:17px; }
+
+  .prompt-box{ margin-top:14px; }
+  .prompt-box summary{ cursor:pointer; font-size:12px; color:var(--ink-faint); letter-spacing:.03em; }
+  .prompt-box textarea{
+    width:100%; margin-top:10px; min-height:150px; resize:vertical;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:8px;
+    color:var(--ink-dim); font-family:'Jost',sans-serif; font-size:12px; line-height:1.55; padding:12px;
+  }
+
+  .note{
+    background:var(--surface-2); border:1px solid var(--line-soft); border-radius:8px;
+    padding:12px 14px; font-size:11.5px; line-height:1.55; color:var(--ink-faint); margin-top:16px;
+  }
+  .note b{ color:var(--accent); font-weight:600; }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:100; background:rgba(6,7,6,.85);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  .modal-overlay.open{ opacity:1; pointer-events:auto; }
+  .modal-card{
+    position:relative; width:100%; max-width:560px; max-height:88svh; overflow-y:auto;
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:28px 24px calc(24px + env(safe-area-inset-bottom,0px));
+    transform:translateY(16px) scale(.98); transition:transform .35s cubic-bezier(.2,.7,.3,1);
+  }
+  .modal-overlay.open .modal-card{ transform:none; }
+  .modal-close{
+    position:absolute; top:14px; right:14px; width:36px; height:36px; border-radius:50%;
+    border:1px solid var(--line); background:transparent; color:var(--ink); font-size:15px; cursor:pointer; z-index:2;
+  }
+  .modal-close:hover{ border-color:var(--accent); color:var(--accent); }
+  .modal-card h3{ font-size:22px; margin-bottom:6px; }
+  .modal-card p.sub{ margin:0 0 18px; font-size:13px; color:var(--ink-dim); }
+
+  .gen-state{ display:none; flex-direction:column; align-items:center; gap:16px; padding:30px 10px; text-align:center; }
+  .gen-state.show{ display:flex; }
+  .spinner{
+    width:44px; height:44px; border-radius:50%; border:3px solid var(--line);
+    border-top-color:var(--accent); animation:spin 1s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .gen-state p{ margin:0; font-size:13.5px; color:var(--ink-dim); max-width:36ch; }
+
+  .result-wrap{ display:none; flex-direction:column; gap:14px; }
+  .result-wrap.show{ display:flex; }
+  .result-wrap img{ width:100%; border-radius:10px; border:1px solid var(--line); display:block; }
+  .result-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+  .result-actions .btn{ width:auto; flex:1; min-width:140px; }
+  .btn-ghost{
+    background:transparent; color:var(--ink-dim); border-color:var(--line);
+  }
+  .btn-ghost:hover{ background:var(--surface-2); color:var(--ink); }
+
+  .error-state{ display:none; flex-direction:column; gap:10px; padding:20px 4px; }
+  .error-state.show{ display:flex; }
+  .error-state p{ margin:0; font-size:13.5px; color:var(--danger); }
+  .error-state small{ color:var(--ink-faint); font-size:11.5px; }
+
+  @media (prefers-reduced-motion: reduce){ .spinner{ animation-duration:2s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">ALIAN MEBLI · перший прототип</div>
+    <h1>Підберіть вигляд кухні — і побачте її у власному просторі</h1>
+    <p>Оберіть колір фасадів, стільницю й ручки, завантажте фото своєї кухні — і отримайте фотореалістичну
+      візуалізацію прямо тут, на сторінці.</p>
+  </header>
+
+  <div class="layout">
+    <div class="card">
+      <div class="illust-wrap">
+        <svg id="kitchenSvg" viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="sheen"></div>
+      </div>
+      <p class="combo-line">Комплектація: <b id="comboLine">чорний онікс, чорний граніт, без ручок</b></p>
+    </div>
+
+    <div class="card">
+      <div class="control-block">
+        <div class="group-label"><b>Колір фасаду</b><span id="facadeName">Чорний онікс</span></div>
+        <div class="swatches" id="facadeSwatches"></div>
+      </div>
+
+      <div class="control-block">
+        <div class="group-label"><b>Стільниця</b><span id="worktopName">Чорний граніт</span></div>
+        <div class="swatches" id="worktopSwatches"></div>
+      </div>
+
+      <div class="control-block">
+        <div class="group-label"><b>Ручки</b><span id="handleName">Без ручок</span></div>
+        <div class="style-row" id="handleButtons"></div>
+      </div>
+
+      <div class="control-block">
+        <div class="group-label"><b>Довжина кухні</b><span id="widthOut">3.0 м</span></div>
+        <input type="range" id="widthRange" min="1.5" max="6" step="0.1" value="3">
+      </div>
+
+      <div class="control-block">
+        <div class="group-label"><b>Орієнтовна вартість</b><span class="approx-badge">≈ порядок цін</span></div>
+        <div class="price-out" id="priceOut">160 000 – 195 000 ₴</div>
+        <p class="price-note">Орієнтир на основі наших прайсів на матеріали й фурнітуру — не остаточна сума. Точну
+          вартість визначаємо після безкоштовного заміру.</p>
+      </div>
+
+      <div class="control-block">
+        <div class="group-label"><b>Ваша кухня</b></div>
+        <label class="upload" id="uploadZone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0-4 4m4-4 4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+          <span>Натисніть або перетягніть фото своєї кухні</span>
+          <small>JPG / PNG, лишається лише у вашому браузері</small>
+          <input type="file" id="roomPhoto" accept="image/*">
+        </label>
+        <div class="preview" id="preview">
+          <img id="previewImg" alt="Прев'ю фото кімнати">
+          <div class="meta" id="previewMeta"></div>
+          <button id="previewRemove" title="Прибрати фото" aria-label="Прибрати фото">✕</button>
+        </div>
+      </div>
+
+      <div class="control-block">
+        <button class="btn" id="generateBtn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m4 17 5-5 4 4 3-3 4 4"/></svg>
+          Зробити візуалізацію
+        </button>
+        <details class="prompt-box">
+          <summary>Показати технічний опис запиту</summary>
+          <textarea id="promptText" readonly></textarea>
+        </details>
+        <div class="note"><b>Як це працює:</b> фото обробляється напряму на нашому сервері (Cloudflare Workers AI) —
+          нікуди більше не завантажується і ніде не зберігається після генерації.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="genModal">
+  <div class="modal-card">
+    <button class="modal-close" id="modalClose" aria-label="Закрити">✕</button>
+    <h3>Візуалізація кухні</h3>
+    <p class="sub" id="modalSub">чорний онікс, чорний граніт, без ручок</p>
+
+    <div class="gen-state" id="genLoading">
+      <div class="spinner"></div>
+      <p>Генеруємо зображення… зазвичай це займає 15–30 секунд.</p>
+    </div>
+
+    <div class="error-state" id="genError">
+      <p id="genErrorText">Не вдалося згенерувати зображення.</p>
+      <small id="genErrorDetail"></small>
+      <button class="btn btn-ghost" id="retryBtn" style="margin-top:8px;">Спробувати ще раз</button>
+    </div>
+
+    <div class="result-wrap" id="genResult">
+      <img id="resultImg" alt="Візуалізація кухні">
+      <div class="result-actions">
+        <button class="btn btn-ghost" id="downloadBtn">Зберегти зображення</button>
+        <button class="btn" id="regenerateBtn">Згенерувати ще раз</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const WORKER_URL = 'https://alian-kitchen-render.ignatovsergei02.workers.dev';
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('kitchenSvg');
+  function el(tag, attrs){
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+
+  // ---------- Palette (broad color range, not tied to a specific supplier) ----------
+  const FACADES = [
+    { id:'onyx',    name:'Чорний онікс',      hex:'#1c1c1a', tier:'standard', desc:'глибокий матовий чорний колір фасадів (онікс)' },
+    { id:'ivory',   name:'Слонова кістка',    hex:'#efe8da', tier:'base',     desc:'теплий світлий колір фасадів слонової кістки' },
+    { id:'snow',    name:'Білий сніг',        hex:'#f5f3ee', tier:'base',     desc:'чистий білий матовий колір фасадів' },
+    { id:'sand',    name:'Пісочний беж',      hex:'#d9c9a8', tier:'base',     desc:'пісочно-бежевий матовий колір фасадів' },
+    { id:'mocha',   name:'Мокко',             hex:'#7a5c46', tier:'standard', desc:'теплий коричневий колір фасадів мокко' },
+    { id:'walnut',  name:'Горіховий',         hex:'#5b3a22', tier:'premium',  desc:'глибокий горіховий коричневий колір фасадів' },
+    { id:'olive',   name:'Оливковий',         hex:'#6d7357', tier:'standard', desc:'приглушений оливковий колір фасадів' },
+    { id:'sage',    name:'Шавлієвий',         hex:'#a3b18a', tier:'standard', desc:'ніжний шавлієво-зелений колір фасадів' },
+    { id:'emerald', name:'Смарагдовий',       hex:'#2f4d3a', tier:'premium',  desc:'насичений смарагдово-зелений колір фасадів' },
+    { id:'terra',   name:'Теракота',          hex:'#b1583c', tier:'standard', desc:'теплий теракотовий колір фасадів' },
+    { id:'mustard', name:'Гірчичний',         hex:'#c99a3c', tier:'standard', desc:'насичений гірчичний колір фасадів' },
+    { id:'burgundy',name:'Бордовий',          hex:'#6e2635', tier:'premium',  desc:'глибокий бордовий колір фасадів' },
+    { id:'blush',   name:'Пудровий',          hex:'#d9b8b0', tier:'standard', desc:'ніжний пудрово-рожевий колір фасадів' },
+    { id:'sky',     name:'Небесний',          hex:'#a9c4d6', tier:'standard', desc:'світлий небесно-блакитний колір фасадів' },
+    { id:'navy',    name:'Темно-синій',       hex:'#29394a', tier:'premium',  desc:'насичений темно-синій колір фасадів' },
+    { id:'graphite',name:'Графітовий',        hex:'#3c4247', tier:'premium',  desc:'графітовий сатиновий колір фасадів' },
+  ];
+  const WORKTOPS = [
+    { id:'wood',    name:'Дерево',         img:'configurator-img/worktop-wood.jpg', tier:'base',
+      desc:'дерев’яна стільниця з масиву дуба з теплою природною текстурою деревини' },
+    { id:'concrete',name:'Бетон',          img:'configurator-img/worktop-concrete.jpg', tier:'standard',
+      desc:'стільниця під полірований бетон — рівний сірий тон з тонкою природною шорсткою фактурою' },
+    { id:'granite', name:'Чорний граніт',  img:'configurator-img/worktop-granite.jpg', tier:'standard',
+      desc:'стільниця з чорного граніту з ледь помітним сатиновим блиском і природним крапчастим малюнком' },
+    { id:'marble',  name:'Світлий мармур', img:'configurator-img/worktop-marble.jpg', tier:'premium',
+      desc:'стільниця зі світлого мармуру з тонкими сірими прожилками на білому тлі' },
+  ];
+  const HANDLES = [
+    { id:'none',    name:'Без ручок',            shape:'none',    color:null,
+      desc:'без ручок — фасади відкриваються натисканням (система push-to-open), поверхня фасаду лишається гладкою' },
+    { id:'barBlack',name:'Пряма рейка, чорна',   shape:'bar',     color:'#0c0c0a',
+      desc:'тонка пряма ручка-рейка чорного матового кольору вздовж вертикального краю кожного фасаду' },
+    { id:'barChrome',name:'Пряма рейка, хром',   shape:'bar',     color:'#c7ccd1',
+      desc:'тонка пряма ручка-рейка полірованого хромованого кольору вздовж вертикального краю кожного фасаду' },
+    { id:'knobBrass',name:'Кругла кнопка, латунь',shape:'knob',   color:'#c9a35e',
+      desc:'невелика кругла ручка-кнопка латунного кольору на кожному фасаді' },
+    { id:'arcBlack', name:'Дугова скоба, чорна', shape:'arc',     color:'#0c0c0a',
+      desc:'вигнута дугоподібна ручка-скоба чорного кольору на кожному фасаді' },
+    { id:'profile',  name:'Наскрізний профіль',  shape:'profile', color:'#111110',
+      desc:'наскрізна ручка-профіль на всю висоту фасаду, врізана в його верхній край' },
+  ];
+
+  const HANDLE_ICONS = {
+    none:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>',
+    bar:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="4" x2="12" y2="20"/></svg>',
+    knob:   '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4.5"/></svg>',
+    arc:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4v16M15 4v16M9 6a6 6 0 0 0 6 0"/></svg>',
+    profile:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="3" x2="12" y2="21"/></svg>',
+  };
+
+  let state = { facade: FACADES[0], worktop: WORKTOPS[0], handle: HANDLES[0] };
+
+  // ---------- Build SVG scene ----------
+  const defs = el('defs', {});
+  const wallGrad = el('linearGradient', { id:'wallGrad', x1:'0', y1:'0', x2:'0', y2:'1' });
+  wallGrad.appendChild(el('stop', { offset:'0%', 'stop-color':'#1a1912' }));
+  wallGrad.appendChild(el('stop', { offset:'100%', 'stop-color':'#0c0c0a' }));
+  defs.appendChild(wallGrad);
+
+  const floorGrad = el('linearGradient', { id:'floorGrad', x1:'0', y1:'0', x2:'0', y2:'1' });
+  floorGrad.appendChild(el('stop', { offset:'0%', 'stop-color':'#141310' }));
+  floorGrad.appendChild(el('stop', { offset:'100%', 'stop-color':'#080807' }));
+  defs.appendChild(floorGrad);
+
+  function imgPattern(id, href){
+    const p = el('pattern', { id, patternUnits:'objectBoundingBox', patternContentUnits:'objectBoundingBox', width:'1', height:'1' });
+    p.appendChild(el('image', { href, x:'0', y:'0', width:'1', height:'1', preserveAspectRatio:'xMidYMid slice' }));
+    return p;
+  }
+  WORKTOPS.forEach(w => defs.appendChild(imgPattern('worktopPattern-' + w.id, w.img)));
+  svg.appendChild(defs);
+
+  svg.appendChild(el('rect', { x:0,y:0,width:960,height:600, fill:'url(#wallGrad)' }));
+  svg.appendChild(el('rect', { x:0,y:480,width:960,height:120, fill:'url(#floorGrad)' }));
+  svg.appendChild(el('rect', { x:430, y:60, width:100, height:70, rx:4, fill:'#141310', stroke:'#000', 'stroke-opacity':'0.3' }));
+
+  const wallY0 = 70, wallY1 = 230, wallX0 = 130, wallX1 = 830;
+  svg.appendChild(el('rect', { x:wallX0-6, y:wallY0-6, width:(wallX1-wallX0)+12, height:(wallY1-wallY0)+12, rx:5, fill:'#111009' }));
+
+  svg.appendChild(el('rect', { x:wallX0-10, y:wallY1+4, width:(wallX1-wallX0)+20, height:56, fill:'#17160f' }));
+  for (let x=wallX0-10; x<wallX1+10; x+=28){
+    svg.appendChild(el('line', { x1:x, y1:wallY1+4, x2:x, y2:wallY1+60, stroke:'#0b0b08', 'stroke-width':'1', opacity:'0.5' }));
+  }
+
+  const baseY0 = 330, baseY1 = 480, baseX0 = 110, baseX1 = 850;
+  svg.appendChild(el('rect', { x:baseX0-6, y:baseY0-6, width:(baseX1-baseX0)+12, height:(baseY1-baseY0)+12+34, rx:5, fill:'#111009' }));
+  svg.appendChild(el('rect', { x:baseX0+6, y:baseY1+28, width:(baseX1-baseX0)-12, height:14, fill:'#080706' }));
+
+  const worktopRect = el('rect', { x:baseX0-16, y:baseY0-24, width:(baseX1-baseX0)+32, height:22, rx:2, fill:'url(#worktopPattern-' + WORKTOPS[0].id + ')' });
+  svg.appendChild(worktopRect);
+
+  const facadeDoors = [];
+  function buildDoors(x0, x1, y0, y1, count){
+    const gap = 6, totalW = x1-x0, dw = (totalW - gap*(count-1))/count;
+    for (let i=0;i<count;i++){
+      const dx = x0 + i*(dw+gap);
+      const door = el('rect', { x:dx, y:y0, width:dw, height:(y1-y0), rx:3, fill:FACADES[0].hex, stroke:'#000', 'stroke-opacity':'0.35' });
+      svg.appendChild(door);
+      facadeDoors.push({ el:door, x:dx, y:y0, w:dw, h:(y1-y0), side: i%2===0 ? 1 : -1 });
+    }
+  }
+  buildDoors(wallX0, wallX1, wallY0, wallY1, 3);
+  buildDoors(baseX0, baseX1, baseY0, baseY1, 4);
+
+  const handleGroup = el('g', { id:'handleGroup' });
+  svg.appendChild(handleGroup);
+  function renderHandles(item){
+    while (handleGroup.firstChild) handleGroup.removeChild(handleGroup.firstChild);
+    if (item.shape === 'none') return;
+    facadeDoors.forEach(d => {
+      const edgeX = d.side === 1 ? d.x + d.w - 14 : d.x + 14;
+      if (item.shape === 'bar'){
+        handleGroup.appendChild(el('rect', { x:edgeX-2, y:d.y+d.h*0.28, width:4, height:d.h*0.44, rx:2, fill:item.color }));
+      } else if (item.shape === 'knob'){
+        const ky = d.y > baseY0 ? d.y + 14 : d.y + d.h - 14;
+        handleGroup.appendChild(el('circle', { cx:edgeX, cy:ky, r:5, fill:item.color }));
+      } else if (item.shape === 'arc'){
+        const y1 = d.y + d.h*0.32, y2 = d.y + d.h*0.68;
+        handleGroup.appendChild(el('path', { d:`M ${edgeX-6} ${y1} C ${edgeX+6} ${y1+6}, ${edgeX+6} ${y2-6}, ${edgeX-6} ${y2}`, stroke:item.color, 'stroke-width':'2.4', fill:'none' }));
+      } else if (item.shape === 'profile'){
+        handleGroup.appendChild(el('rect', { x:edgeX-1.5, y:d.y+4, width:3, height:d.h-8, fill:item.color }));
+      }
+    });
+  }
+  renderHandles(HANDLES[0]);
+
+  // ---------- Swatches ----------
+  function buildColorSwatches(containerId, list, labelId, onPick, active0){
+    const wrap = document.getElementById(containerId);
+    list.forEach((item, i) => {
+      const b = document.createElement('button');
+      b.className = 'swatch' + (i===active0 ? ' active' : '');
+      b.style.background = item.hex;
+      b.title = item.name;
+      b.setAttribute('aria-label', item.name);
+      b.addEventListener('click', () => {
+        onPick(item);
+        [...wrap.children].forEach(c=>c.classList.remove('active'));
+        b.classList.add('active');
+        document.getElementById(labelId).textContent = item.name;
+        updateAll();
+      });
+      wrap.appendChild(b);
+    });
+  }
+  function buildPhotoSwatches(containerId, list, labelId, onPick, active0){
+    const wrap = document.getElementById(containerId);
+    list.forEach((item, i) => {
+      const b = document.createElement('button');
+      b.className = 'swatch swatch-photo' + (i===active0 ? ' active' : '');
+      b.style.backgroundImage = "url('" + item.img + "')";
+      b.title = item.name;
+      b.setAttribute('aria-label', item.name);
+      b.addEventListener('click', () => {
+        onPick(item);
+        [...wrap.children].forEach(c=>c.classList.remove('active'));
+        b.classList.add('active');
+        document.getElementById(labelId).textContent = item.name;
+        updateAll();
+      });
+      wrap.appendChild(b);
+    });
+  }
+
+  buildColorSwatches('facadeSwatches', FACADES, 'facadeName', (item) => {
+    state.facade = item;
+    facadeDoors.forEach(d => d.el.setAttribute('fill', item.hex));
+  }, 0);
+
+  buildPhotoSwatches('worktopSwatches', WORKTOPS, 'worktopName', (item) => {
+    state.worktop = item;
+    worktopRect.setAttribute('fill', 'url(#worktopPattern-' + item.id + ')');
+  }, 0);
+
+  const handleBtnsEl = document.getElementById('handleButtons');
+  HANDLES.forEach((item, i) => {
+    const b = document.createElement('button');
+    b.className = 'style-btn' + (i===0 ? ' active' : '');
+    const thumb = document.createElement('span');
+    thumb.className = 'thumb';
+    thumb.style.color = item.color || 'var(--ink-faint)';
+    thumb.innerHTML = HANDLE_ICONS[item.shape];
+    b.appendChild(thumb);
+    const label = document.createElement('span');
+    label.textContent = item.name;
+    b.appendChild(label);
+    b.addEventListener('click', () => {
+      state.handle = item;
+      renderHandles(item);
+      [...handleBtnsEl.children].forEach(c=>c.classList.remove('active'));
+      b.classList.add('active');
+      document.getElementById('handleName').textContent = item.name;
+      updateAll();
+    });
+    handleBtnsEl.appendChild(b);
+  });
+
+  function updateCombo(){
+    const line = state.facade.name.toLowerCase() + ', ' + state.worktop.name.toLowerCase() + ', ' + state.handle.name.toLowerCase();
+    document.getElementById('comboLine').textContent = line;
+    document.getElementById('modalSub').textContent = line;
+  }
+
+  // ---------- Price ----------
+  const TIER_RATES = {
+    base:     { fixed:40000, rate:25000 },
+    standard: { fixed:60000, rate:38000 },
+    premium:  { fixed:95000, rate:60000 },
+  };
+  const TIER_RANK = { base:0, standard:1, premium:2 };
+  const TIER_NAMES = ['base','standard','premium'];
+  let width = 3;
+
+  function updatePrice(){
+    const tierIdx = Math.max(TIER_RANK[state.facade.tier], TIER_RANK[state.worktop.tier]);
+    const { fixed, rate } = TIER_RATES[TIER_NAMES[tierIdx]];
+    let total = fixed + rate * width;
+    if (state.handle.id !== 'none') total *= 1.04;
+    const min = Math.round((total * 0.92) / 500) * 500;
+    const max = Math.round((total * 1.12) / 500) * 500;
+    document.getElementById('priceOut').textContent = min.toLocaleString('uk-UA') + ' – ' + max.toLocaleString('uk-UA') + ' ₴';
+  }
+
+  document.getElementById('widthRange').addEventListener('input', (e) => {
+    width = parseFloat(e.target.value);
+    document.getElementById('widthOut').textContent = width.toFixed(1) + ' м';
+    updatePrice();
+  });
+
+  function updateAll(){ updateCombo(); updatePrice(); refreshPrompt(); }
+
+  // ---------- Upload ----------
+  const uploadZone = document.getElementById('uploadZone');
+  const fileInput = document.getElementById('roomPhoto');
+  const preview = document.getElementById('preview');
+  const previewImg = document.getElementById('previewImg');
+  const previewMeta = document.getElementById('previewMeta');
+  const generateBtn = document.getElementById('generateBtn');
+  let roomFile = null;
+
+  function handleFile(file){
+    if (!file) return;
+    const looksLikeImage = file.type ? file.type.startsWith('image/') : /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name || '');
+    if (!looksLikeImage) {
+      previewMeta.textContent = 'Це не схоже на зображення — спробуйте JPG або PNG.';
+      preview.classList.add('show');
+      previewImg.removeAttribute('src');
+      return;
+    }
+    roomFile = file;
+    const reader = new FileReader();
+    reader.onerror = () => {
+      previewMeta.textContent = 'Не вдалося прочитати файл. Спробуйте інше фото.';
+      preview.classList.add('show');
+      generateBtn.disabled = true;
+    };
+    reader.onload = (e) => {
+      previewImg.src = e.target.result;
+      previewMeta.textContent = file.name + ' · ' + Math.round(file.size/1024) + ' КБ';
+      preview.classList.add('show');
+      generateBtn.disabled = false;
+    };
+    reader.readAsDataURL(file);
+  }
+  fileInput.addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    handleFile(f);
+  });
+  ['dragover','dragenter'].forEach(ev => uploadZone.addEventListener(ev, (e) => { e.preventDefault(); uploadZone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev => uploadZone.addEventListener(ev, (e) => { e.preventDefault(); uploadZone.classList.remove('drag'); }));
+  uploadZone.addEventListener('drop', (e) => { if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  document.getElementById('previewRemove').addEventListener('click', () => {
+    fileInput.value = ''; preview.classList.remove('show'); roomFile = null; generateBtn.disabled = true;
+  });
+
+  // ---------- Prompt ----------
+  const promptTextEl = document.getElementById('promptText');
+  function buildPrompt(){
+    return 'Insert this kitchen into image 0, photorealistically, keeping the room exactly as it is. ' +
+      'Do not change the walls, floor, window, doorway, lighting, or perspective — modify only the kitchen ' +
+      'cabinets, countertop, and handles.\n\n' +
+      'Facade: ' + state.facade.desc + '.\n' +
+      'Countertop: ' + state.worktop.desc + '.\n' +
+      'Handles: ' + state.handle.desc + '.\n\n' +
+      'Custom kitchen by ALIAN MEBLI (Kyiv). Photorealistic result.';
+  }
+  function refreshPrompt(){ promptTextEl.value = buildPrompt(); }
+  updateAll();
+
+  // ---------- Resize helper (model requires input images <= 512x512) ----------
+  function resizeToBlob(file, maxSize){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > h) { if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; } }
+        else { if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; } }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('resize_failed')), 'image/jpeg', 0.88);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image_load_failed')); };
+      img.src = url;
+    });
+  }
+
+  // ---------- Modal + generation ----------
+  const genModal = document.getElementById('genModal');
+  const genLoading = document.getElementById('genLoading');
+  const genResult = document.getElementById('genResult');
+  const genError = document.getElementById('genError');
+  const resultImg = document.getElementById('resultImg');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const genErrorText = document.getElementById('genErrorText');
+  const genErrorDetail = document.getElementById('genErrorDetail');
+  let lastImageB64 = null;
+
+  function base64ToBlob(b64, mime){
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  }
+
+  downloadBtn.addEventListener('click', async () => {
+    if (!lastImageB64) return;
+    const old = downloadBtn.textContent;
+    const blob = base64ToBlob(lastImageB64, 'image/jpeg');
+    try {
+      if (typeof claude !== 'undefined' && claude && claude.use) {
+        const downloads = await claude.use('downloads');
+        if (downloads) {
+          await downloads.save({ filename: 'alian-kitchen.jpg', data: blob });
+          downloadBtn.textContent = 'Збережено ✓';
+          setTimeout(() => downloadBtn.textContent = old, 2000);
+          return;
+        }
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'alian-kitchen.jpg';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      downloadBtn.textContent = 'Збережено ✓';
+      setTimeout(() => downloadBtn.textContent = old, 2000);
+    } catch (err) {
+      downloadBtn.textContent = 'Не вдалося зберегти';
+      setTimeout(() => downloadBtn.textContent = old, 2000);
+    }
+  });
+
+  function openModal(){ genModal.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function closeModal(){ genModal.classList.remove('open'); document.body.style.overflow = ''; }
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  genModal.addEventListener('click', (e) => { if (e.target === genModal) closeModal(); });
+
+  function showState(which){
+    genLoading.classList.toggle('show', which === 'loading');
+    genResult.classList.toggle('show', which === 'result');
+    genError.classList.toggle('show', which === 'error');
+  }
+
+  async function runGeneration(){
+    if (!roomFile) return;
+    openModal();
+    showState('loading');
+    try {
+      const resized = await resizeToBlob(roomFile, 512);
+      const form = new FormData();
+      form.append('prompt', buildPrompt());
+      form.append('image', resized, 'room.jpg');
+
+      const res = await fetch(WORKER_URL, { method: 'POST', body: form });
+      const data = await res.json();
+
+      if (!data.ok) {
+        if (data.error === 'quota_exceeded') {
+          genErrorText.textContent = 'Безкоштовний ліміт генерацій на сьогодні вичерпано.';
+          genErrorDetail.textContent = 'Спробуйте, будь ласка, завтра — ліміт оновлюється щодня.';
+        } else {
+          genErrorText.textContent = 'Не вдалося згенерувати зображення.';
+          genErrorDetail.textContent = data.detail || data.error || '';
+        }
+        showState('error');
+        return;
+      }
+
+      lastImageB64 = data.image;
+      resultImg.src = 'data:image/jpeg;base64,' + data.image;
+      showState('result');
+    } catch (err) {
+      genErrorText.textContent = 'Проблема з мережею під час генерації.';
+      genErrorDetail.textContent = String(err && err.message ? err.message : err);
+      showState('error');
+    }
+  }
+
+  generateBtn.addEventListener('click', runGeneration);
+  document.getElementById('retryBtn').addEventListener('click', runGeneration);
+  document.getElementById('regenerateBtn').addEventListener('click', runGeneration);
+})();
+</script>
+
+</body>
+</html>
