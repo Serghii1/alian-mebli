@@ -560,20 +560,86 @@
     return new THREE.MeshStandardMaterial(params);
   }
 
-  // Door group: pivot at hinge edge so it swings correctly; interactive via raycaster
+  // Cabinet cell = a static carcass box (never moves) + a thin door panel on a hinge pivot
+  // at the very front face, so opening the door swings only the thin panel, not the whole box.
+  const WALL_Z = -0.62;
+  const DOOR_THICK = 0.022;
   const doorPivots = [];
-  function makeDoor(x0, x1, y0, y1, depth, z, hingeOnLeft, material){
-    const w = x1 - x0, h = y1 - y0;
+  const carcassMeshes = [];
+  const carcassMat = new THREE.MeshStandardMaterial({ color:0xcac3b3, roughness:0.88, metalness:0.02 });
+
+  // Hollow carcass shell (5 thin walls, open front) so the inside is visible once the door swings open.
+  function makeCarcassShell(w, h, depth){
+    const wallT = 0.016;
+    const group = new THREE.Group();
+    const back = new THREE.Mesh(new THREE.BoxGeometry(w, h, wallT), carcassMat);
+    back.position.set(0, 0, -depth/2 + wallT/2);
+    group.add(back);
+    const left = new THREE.Mesh(new THREE.BoxGeometry(wallT, h, depth), carcassMat);
+    left.position.set(-w/2 + wallT/2, 0, 0);
+    group.add(left);
+    const right = new THREE.Mesh(new THREE.BoxGeometry(wallT, h, depth), carcassMat);
+    right.position.set(w/2 - wallT/2, 0, 0);
+    group.add(right);
+    const top = new THREE.Mesh(new THREE.BoxGeometry(w, wallT, depth), carcassMat);
+    top.position.set(0, h/2 - wallT/2, 0);
+    group.add(top);
+    const bottom = new THREE.Mesh(new THREE.BoxGeometry(w, wallT, depth), carcassMat);
+    bottom.position.set(0, -h/2 + wallT/2, 0);
+    group.add(bottom);
+    return group;
+  }
+  function addShelfInto(group, w, h, depth, yFrac){
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(w - 0.03, 0.014, depth - 0.03), carcassMat);
+    shelf.position.set(0, -h/2 + h*yFrac, 0);
+    group.add(shelf);
+  }
+  const metalTrimMat = new THREE.MeshStandardMaterial({ color:0xb9bec2, roughness:0.3, metalness:0.8 });
+  function addRodInto(group, w, h, yFrac){
+    const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, w - 0.06, 10), metalTrimMat);
+    rod.rotation.z = Math.PI/2;
+    rod.position.set(0, -h/2 + h*yFrac, 0);
+    group.add(rod);
+  }
+  const glassMat = new THREE.MeshPhysicalMaterial({ color:0xdfeaf0, roughness:0.05, metalness:0, transparent:true, opacity:0.55 });
+  function addGlassesInto(group, w, h, depth, yFrac){
+    const shelfY = -h/2 + h*yFrac + 0.008;
+    for (let i = 0; i < 3; i++){
+      const g = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.018, 0.085, 14), glassMat);
+      g.position.set(-w*0.22 + i*0.065, shelfY + 0.05, depth*0.12);
+      group.add(g);
+    }
+  }
+
+  function makeCabinetCell(x0, x1, y0, y1, zBack, zFront, hingeOnLeft, material, kind, opts){
+    opts = opts || {};
+    const w = x1 - x0, h = y1 - y0, depth = zFront - zBack;
+    const carcassDepth = Math.max(0.08, depth - DOOR_THICK);
+    const innerW = w - 0.012, innerH = h - 0.012;
+    const shell = makeCarcassShell(innerW, innerH, carcassDepth);
+    shell.position.set((x0+x1)/2, (y0+y1)/2, zBack + carcassDepth/2);
+    scene.add(shell);
+    carcassMeshes.push(shell);
+
+    if (!opts.sink){
+      if (kind === 'tall'){
+        addRodInto(shell, innerW, innerH, 0.62);
+        addShelfInto(shell, innerW, innerH, carcassDepth, 0.86);
+      } else {
+        addShelfInto(shell, innerW, innerH, carcassDepth, 0.5);
+        if (opts.glasses) addGlassesInto(shell, innerW, innerH, carcassDepth, 0.5);
+      }
+    }
+
     const pivot = new THREE.Group();
-    pivot.position.set(hingeOnLeft ? x0 : x1, 0, z);
-    const geo = new THREE.BoxGeometry(w, h, depth);
-    const mesh = new THREE.Mesh(geo, material);
-    mesh.position.set((hingeOnLeft ? w/2 : -w/2), (y0+y1)/2, depth/2);
+    pivot.position.set(hingeOnLeft ? x0 : x1, 0, zFront - DOOR_THICK/2);
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w - 0.012, h - 0.012, DOOR_THICK), material);
+    mesh.position.set((hingeOnLeft ? w/2 : -w/2), (y0+y1)/2, 0);
     pivot.add(mesh);
     pivot.userData = { open:false, target:0, hingeOnLeft, doorMesh:mesh, w, h };
     scene.add(pivot);
     doorPivots.push(pivot);
-    return { pivot, mesh, x0, x1, y0, y1, depth, z, hingeOnLeft };
+    return { pivot, mesh, x0, x1, y0, y1, depth:DOOR_THICK, hingeOnLeft };
   }
 
   function addHandle(doorInfo, item){
@@ -626,12 +692,15 @@
     doorPivots.forEach(p => scene.remove(p));
     doorPivots.length = 0;
     doorInfos.length = 0;
+    carcassMeshes.forEach(m => scene.remove(m));
+    carcassMeshes.length = 0;
     if (mirrorMesh){ scene.remove(mirrorMesh); mirrorMesh = null; }
     if (ledStrip){ scene.remove(ledStrip); ledStrip = null; }
     if (ledLight){ scene.remove(ledLight); ledLight = null; }
   }
 
-  function buildDoorRow(x0, x1, y0, y1, depth, z, count, mat){
+  function buildDoorRow(x0, x1, y0, y1, zBack, zFront, count, mat, opts){
+    opts = opts || {};
     const gap = 0.012;
     const totalW = x1 - x0;
     const dw = (totalW - gap*(count-1)) / count;
@@ -639,12 +708,95 @@
       const dx0 = x0 + i*(dw+gap);
       const dx1 = dx0 + dw;
       const hingeOnLeft = i % 2 === 0;
-      const info = makeDoor(dx0, dx1, y0, y1, depth, z, hingeOnLeft, mat);
+      const isSink = opts.sinkIndex === i;
+      const isGlasses = opts.glassesIndex === i;
+      const info = makeCabinetCell(dx0, dx1, y0, y1, zBack, zFront, hingeOnLeft, mat, opts.kind, { sink:isSink, glasses:isGlasses });
+      info.sink = isSink;
       doorInfos.push(info);
     }
   }
 
   const worktopMeshes = [];
+  function buildSinkBasin(cx, cz, w, d, topY){
+    const steelMat = new THREE.MeshStandardMaterial({ color:0xb9bec2, roughness:0.3, metalness:0.85 });
+    const depthH = 0.11, wallT = 0.008;
+    const bottom = new THREE.Mesh(new THREE.BoxGeometry(w - wallT*2, 0.01, d - wallT*2), steelMat);
+    bottom.position.set(cx, topY - depthH, cz);
+    scene.add(bottom); worktopMeshes.push(bottom);
+    const wallFront = new THREE.Mesh(new THREE.BoxGeometry(w, depthH, wallT), steelMat);
+    wallFront.position.set(cx, topY - depthH/2, cz - d/2 + wallT/2);
+    scene.add(wallFront); worktopMeshes.push(wallFront);
+    const wallBack = new THREE.Mesh(new THREE.BoxGeometry(w, depthH, wallT), steelMat);
+    wallBack.position.set(cx, topY - depthH/2, cz + d/2 - wallT/2);
+    scene.add(wallBack); worktopMeshes.push(wallBack);
+    const wallLeft = new THREE.Mesh(new THREE.BoxGeometry(wallT, depthH, d), steelMat);
+    wallLeft.position.set(cx - w/2 + wallT/2, topY - depthH/2, cz);
+    scene.add(wallLeft); worktopMeshes.push(wallLeft);
+    const wallRight = new THREE.Mesh(new THREE.BoxGeometry(wallT, depthH, d), steelMat);
+    wallRight.position.set(cx + w/2 - wallT/2, topY - depthH/2, cz);
+    scene.add(wallRight); worktopMeshes.push(wallRight);
+  }
+
+  function buildWorktop(x0, x1, zBack, zFront, y, mat, sinkXRange){
+    const depth = zFront - zBack, cz = (zBack+zFront)/2;
+    if (!sinkXRange){
+      const wt = new THREE.Mesh(new THREE.BoxGeometry(x1-x0, 0.05, depth), mat);
+      wt.position.set((x0+x1)/2, y, cz);
+      scene.add(wt); worktopMeshes.push(wt);
+      return;
+    }
+    const margin = 0.045;
+    const midX0 = sinkXRange[0] - margin, midX1 = sinkXRange[1] + margin, midW = midX1 - midX0;
+    const sinkD = depth * 0.5;
+    const leftW = midX0 - x0;
+    if (leftW > 0.02){
+      const l = new THREE.Mesh(new THREE.BoxGeometry(leftW, 0.05, depth), mat);
+      l.position.set(x0 + leftW/2, y, cz);
+      scene.add(l); worktopMeshes.push(l);
+    }
+    const rightW = x1 - midX1;
+    if (rightW > 0.02){
+      const r = new THREE.Mesh(new THREE.BoxGeometry(rightW, 0.05, depth), mat);
+      r.position.set(x1 - rightW/2, y, cz);
+      scene.add(r); worktopMeshes.push(r);
+    }
+    const edgeDepth = (depth - sinkD) / 2;
+    const f = new THREE.Mesh(new THREE.BoxGeometry(midW, 0.05, edgeDepth), mat);
+    f.position.set((midX0+midX1)/2, y, zBack + edgeDepth/2);
+    scene.add(f); worktopMeshes.push(f);
+    const bk = new THREE.Mesh(new THREE.BoxGeometry(midW, 0.05, edgeDepth), mat);
+    bk.position.set((midX0+midX1)/2, y, zFront - edgeDepth/2);
+    scene.add(bk); worktopMeshes.push(bk);
+    buildSinkBasin((midX0+midX1)/2, cz, midW - margin, sinkD, y + 0.02);
+  }
+
+  function addFaucet(cx, cz, topY){
+    const chromeMat = new THREE.MeshStandardMaterial({ color:0xd7dadc, roughness:0.18, metalness:0.9 });
+    const riser = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.2, 12), chromeMat);
+    riser.position.set(cx, topY + 0.1, cz);
+    scene.add(riser); worktopMeshes.push(riser);
+    const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.15, 12), chromeMat);
+    spout.position.set(cx, topY + 0.19, cz + 0.045);
+    spout.rotation.x = Math.PI/2.5;
+    scene.add(spout); worktopMeshes.push(spout);
+  }
+
+  function addCooktop(cx, cz, w, d, topY){
+    const glassMat2 = new THREE.MeshStandardMaterial({ color:0x0a0a0a, roughness:0.15, metalness:0.3 });
+    const bw = w * 0.82, bd = d * 0.7;
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(bw, 0.012, bd), glassMat2);
+    panel.position.set(cx, topY + 0.006, cz);
+    scene.add(panel); worktopMeshes.push(panel);
+    const burnerMat = new THREE.MeshStandardMaterial({ color:0x1c1c1c, roughness:0.5, metalness:0.6 });
+    const r = Math.min(bw, bd) * 0.16;
+    [[-bw*0.24,-bd*0.22],[bw*0.24,-bd*0.22],[-bw*0.24,bd*0.22],[bw*0.24,bd*0.22]].forEach(([dx,dz]) => {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.006, 8, 20), burnerMat);
+      ring.rotation.x = Math.PI/2;
+      ring.position.set(cx + dx, topY + 0.013, cz + dz);
+      scene.add(ring); worktopMeshes.push(ring);
+    });
+  }
+
   function buildScene3D(){
     clearSceneObjects();
     worktopMeshes.forEach(m => scene.remove(m));
@@ -655,26 +807,40 @@
     const worktopMat = new THREE.MeshStandardMaterial({ map: wtTex, roughness:0.4, metalness:0.05 });
 
     if (cfg.layout === 'kitchen'){
-      buildDoorRow(-1.7, 1.7, 1.5, 2.3, 0.32, 0, 3, mat);
-      const wt = new THREE.Mesh(new THREE.BoxGeometry(3.55, 0.05, 0.62), worktopMat);
-      wt.position.set(0, 0.93, 0.18);
-      scene.add(wt); worktopMeshes.push(wt);
-      buildDoorRow(-1.75, 1.75, 0, 0.9, 0.55, 0.32, 4, mat);
-      addLed(-1.7, 1.7, 1.46, -0.02);
+      const baseBack = WALL_Z + 0.02, baseFront = baseBack + 0.6;
+      const wallBack = WALL_Z + 0.02, wallFront = wallBack + 0.32;
+      buildDoorRow(-1.7, 1.7, 1.5, 2.3, wallBack, wallFront, 3, mat, { kind:'wall', glassesIndex:1 });
+      buildDoorRow(-1.75, 1.75, 0, 0.9, baseBack, baseFront, 4, mat, { kind:'base', sinkIndex:1 });
+      const sinkInfo = doorInfos.find(d => d.sink);
+      const cookInfo = doorInfos[doorInfos.length - 1];
+      const wtFront = baseFront + 0.02;
+      buildWorktop(-1.78, 1.78, baseBack, wtFront, 0.93, worktopMat, sinkInfo ? [sinkInfo.x0, sinkInfo.x1] : null);
+      if (sinkInfo){
+        addFaucet((sinkInfo.x0+sinkInfo.x1)/2, baseBack + (wtFront-baseBack)*0.28, 0.955);
+      }
+      if (cookInfo){
+        addCooktop((cookInfo.x0+cookInfo.x1)/2, (baseBack+wtFront)/2, cookInfo.x1-cookInfo.x0, wtFront-baseBack, 0.955);
+      }
+      addLed(-1.7, 1.7, 1.46, wallFront - 0.02);
     } else if (cfg.layout === 'vanity'){
-      const wt = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.05, 0.5), worktopMat);
-      wt.position.set(0, 0.93, 0.12);
-      scene.add(wt); worktopMeshes.push(wt);
-      buildDoorRow(-1.65, 1.65, 0, 0.9, 0.45, 0.12, 3, mat);
+      const baseBack = WALL_Z + 0.02, baseFront = baseBack + 0.45;
+      buildDoorRow(-1.65, 1.65, 0, 0.9, baseBack, baseFront, 3, mat, { kind:'base', sinkIndex:1 });
+      const sinkInfo = doorInfos.find(d => d.sink);
+      const wtFront = baseFront + 0.02;
+      buildWorktop(-1.68, 1.68, baseBack, wtFront, 0.93, worktopMat, sinkInfo ? [sinkInfo.x0, sinkInfo.x1] : null);
+      if (sinkInfo){
+        addFaucet((sinkInfo.x0+sinkInfo.x1)/2, baseBack + (wtFront-baseBack)*0.24, 0.955);
+      }
       const mirrorGeo = new THREE.PlaneGeometry(1.5, 0.85);
       const mirrorMat = new THREE.MeshPhysicalMaterial({ color:0x39434a, roughness:0.05, metalness:0.9, clearcoat:1 });
       mirrorMesh = new THREE.Mesh(mirrorGeo, mirrorMat);
-      mirrorMesh.position.set(0, 1.75, -0.58);
+      mirrorMesh.position.set(0, 1.75, WALL_Z + 0.04);
       scene.add(mirrorMesh);
-      addLed(-0.75, 0.75, 1.3, -0.56);
+      addLed(-0.75, 0.75, 1.3, WALL_Z + 0.06);
     } else if (cfg.layout === 'tall'){
-      buildDoorRow(-1.7, 1.7, 0, 2.28, 0.6, 0, 4, mat);
-      addLed(-1.7, 1.7, 2.32, -0.02);
+      const back = WALL_Z + 0.02, front = back + 0.6;
+      buildDoorRow(-1.7, 1.7, 0, 2.28, back, front, 4, mat, { kind:'tall' });
+      addLed(-1.7, 1.7, 2.32, front - 0.3);
     }
 
     doorInfos.forEach(info => addHandle(info, state.handle));
