@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 </head>
 <body>
-<title>Конфігуратор кухні</title>
+<title>Конфігуратор меблів</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500,600;1,6..96,400&family=Jost:wght@300;400;500;600;700&display=swap');
 
@@ -102,7 +102,17 @@
   .style-btn:hover{ border-color:var(--accent); color:var(--ink); }
   .style-btn.active{ border-color:var(--accent); background:var(--accent-dim); color:var(--ink); }
 
+  .pill{
+    min-height:38px; padding:8px 16px; border-radius:999px; border:1px solid var(--line);
+    background:transparent; color:var(--ink-dim); font-family:'Jost',sans-serif; font-size:13px; font-weight:500;
+    cursor:pointer; transition:.2s;
+  }
+  .pill:hover{ border-color:var(--accent); color:var(--ink); }
+  .pill.active{ border-color:var(--accent); background:var(--accent-dim); color:var(--ink); }
+  .room-pills{ display:flex; flex-wrap:wrap; gap:8px; }
+
   .control-block + .control-block{ margin-top:20px; padding-top:20px; border-top:1px solid var(--line-soft); }
+  .control-block[hidden]{ display:none; }
 
   input[type=range]{ width:100%; height:3px; background:var(--line); border-radius:2px; accent-color:var(--ink); }
 
@@ -216,8 +226,8 @@
 <div class="wrap">
   <header>
     <div class="eyebrow">ALIAN MEBLI · перший прототип</div>
-    <h1>Підберіть вигляд кухні — і побачте її у власному просторі</h1>
-    <p>Оберіть колір фасадів, стільницю й ручки, завантажте фото своєї кухні — і отримайте фотореалістичну
+    <h1>Підберіть вигляд меблів — і побачте їх у власному просторі</h1>
+    <p>Оберіть тип меблів, колір фасадів і фурнітуру, завантажте фото приміщення — і отримайте фотореалістичну
       візуалізацію прямо тут, на сторінці.</p>
   </header>
 
@@ -227,17 +237,22 @@
         <svg id="kitchenSvg" viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg"></svg>
         <div class="sheen"></div>
       </div>
-      <p class="combo-line">Комплектація: <b id="comboLine">чорний онікс, чорний граніт, без ручок</b></p>
+      <p class="combo-line">Комплектація: <b id="comboLine">кухня, чорний онікс, дерево, без ручок</b></p>
     </div>
 
     <div class="card">
+      <div class="control-block">
+        <div class="group-label"><b>Тип меблів</b></div>
+        <div class="room-pills" id="roomPills"></div>
+      </div>
+
       <div class="control-block">
         <div class="group-label"><b>Колір фасаду</b><span id="facadeName">Чорний онікс</span></div>
         <div class="swatches" id="facadeSwatches"></div>
       </div>
 
-      <div class="control-block">
-        <div class="group-label"><b>Стільниця</b><span id="worktopName">Чорний граніт</span></div>
+      <div class="control-block" id="worktopBlock">
+        <div class="group-label"><b id="worktopGroupLabel">Стільниця</b><span id="worktopName">Чорний граніт</span></div>
         <div class="swatches" id="worktopSwatches"></div>
       </div>
 
@@ -247,7 +262,7 @@
       </div>
 
       <div class="control-block">
-        <div class="group-label"><b>Довжина кухні</b><span id="widthOut">3.0 м</span></div>
+        <div class="group-label"><b>Довжина меблевого фронту</b><span id="widthOut">3.0 м</span></div>
         <input type="range" id="widthRange" min="1.5" max="6" step="0.1" value="3">
       </div>
 
@@ -259,10 +274,10 @@
       </div>
 
       <div class="control-block">
-        <div class="group-label"><b>Ваша кухня</b></div>
+        <div class="group-label"><b id="uploadGroupLabel">Ваша кухня</b></div>
         <label class="upload" id="uploadZone">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0-4 4m4-4 4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
-          <span>Натисніть або перетягніть фото своєї кухні</span>
+          <span id="uploadSpan">Натисніть або перетягніть фото своєї кухні</span>
           <small>JPG / PNG, лишається лише у вашому браузері</small>
           <input type="file" id="roomPhoto" accept="image/*">
         </label>
@@ -292,8 +307,8 @@
 <div class="modal-overlay" id="genModal">
   <div class="modal-card">
     <button class="modal-close" id="modalClose" aria-label="Закрити">✕</button>
-    <h3>Візуалізація кухні</h3>
-    <p class="sub" id="modalSub">чорний онікс, чорний граніт, без ручок</p>
+    <h3>Візуалізація меблів</h3>
+    <p class="sub" id="modalSub">кухня, чорний онікс, чорний граніт, без ручок</p>
 
     <div class="gen-state" id="genLoading">
       <div class="spinner"></div>
@@ -307,7 +322,7 @@
     </div>
 
     <div class="result-wrap" id="genResult">
-      <img id="resultImg" alt="Візуалізація кухні">
+      <img id="resultImg" alt="Візуалізація меблів">
       <div class="result-actions">
         <button class="btn btn-ghost" id="downloadBtn">Зберегти зображення</button>
         <button class="btn" id="regenerateBtn">Згенерувати ще раз</button>
@@ -326,6 +341,36 @@
     for (const k in attrs) n.setAttribute(k, attrs[k]);
     return n;
   }
+
+  // ---------- Furniture types (mirrors the main site's price calculator categories) ----------
+  const ROOM_TYPES = {
+    kitchen: {
+      label:'Кухня', layout:'kitchen', hasWorktop:true, worktopLabel:'Стільниця',
+      uploadLabel:'Ваша кухня', uploadSpan:'Натисніть або перетягніть фото своєї кухні',
+      promptSubject:'this kitchen', promptScope:'the kitchen cabinets, countertop, and handles', promptExtra:'',
+      rates:{ base:{fixed:40000,rate:25000}, standard:{fixed:60000,rate:38000}, premium:{fixed:95000,rate:60000} }
+    },
+    wardrobe: {
+      label:'Гардеробна / шафа', layout:'tall', hasWorktop:false, worktopLabel:'',
+      uploadLabel:'Ваше приміщення', uploadSpan:'Натисніть або перетягніть фото гардеробної',
+      promptSubject:'this built-in wardrobe', promptScope:'the wardrobe doors and handles', promptExtra:'',
+      rates:{ base:{fixed:30000,rate:19000}, standard:{fixed:45000,rate:29000}, premium:{fixed:71000,rate:45000} }
+    },
+    bathroom: {
+      label:'Ванна кімната', layout:'vanity', hasWorktop:true, worktopLabel:'Стільниця під раковину',
+      uploadLabel:'Ваша ванна кімната', uploadSpan:'Натисніть або перетягніть фото ванної кімнати',
+      promptSubject:'this bathroom vanity cabinet', promptScope:'the vanity cabinet, countertop, and handles', promptExtra:'',
+      rates:{ base:{fixed:34000,rate:21000}, standard:{fixed:51000,rate:32000}, premium:{fixed:81000,rate:51000} }
+    },
+    bedroom: {
+      label:'Спальня', layout:'tall', hasWorktop:false, worktopLabel:'',
+      uploadLabel:'Ваша спальня', uploadSpan:'Натисніть або перетягніть фото спальні',
+      promptSubject:'this built-in bedroom wardrobe', promptScope:'the wardrobe doors and handles',
+      promptExtra:'Do not add a bed or any other furniture — keep the rest of the room exactly as it is.',
+      rates:{ base:{fixed:32000,rate:20000}, standard:{fixed:48000,rate:30000}, premium:{fixed:76000,rate:48000} }
+    }
+  };
+  const ROOM_ORDER = ['kitchen','wardrobe','bathroom','bedroom'];
 
   // ---------- Palette (broad color range, not tied to a specific supplier) ----------
   const FACADES = [
@@ -379,7 +424,7 @@
     profile:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="3" x2="12" y2="21"/></svg>',
   };
 
-  let state = { facade: FACADES[0], worktop: WORKTOPS[0], handle: HANDLES[0] };
+  let state = { roomKey:'kitchen', facade: FACADES[0], worktop: WORKTOPS[0], handle: HANDLES[0] };
 
   // ---------- Build SVG scene ----------
   const defs = el('defs', {});
@@ -417,24 +462,50 @@
   svg.appendChild(el('rect', { x:baseX0-6, y:baseY0-6, width:(baseX1-baseX0)+12, height:(baseY1-baseY0)+12+34, rx:5, fill:'#111009' }));
   svg.appendChild(el('rect', { x:baseX0+6, y:baseY1+28, width:(baseX1-baseX0)-12, height:14, fill:'#080706' }));
 
-  const worktopRect = el('rect', { x:baseX0-16, y:baseY0-24, width:(baseX1-baseX0)+32, height:22, rx:2, fill:'url(#worktopPattern-' + WORKTOPS[0].id + ')' });
-  svg.appendChild(worktopRect);
+  const sceneGroup = el('g', { id:'sceneGroup' });
+  svg.appendChild(sceneGroup);
+  const handleGroup = el('g', { id:'handleGroup' });
+  svg.appendChild(handleGroup);
 
-  const facadeDoors = [];
-  function buildDoors(x0, x1, y0, y1, count){
+  let facadeDoors = [];
+  let worktopRect = null;
+
+  function clearGroup(g){ while (g.firstChild) g.removeChild(g.firstChild); }
+
+  function buildDoorsInto(parent, x0, x1, y0, y1, count){
     const gap = 6, totalW = x1-x0, dw = (totalW - gap*(count-1))/count;
     for (let i=0;i<count;i++){
       const dx = x0 + i*(dw+gap);
-      const door = el('rect', { x:dx, y:y0, width:dw, height:(y1-y0), rx:3, fill:FACADES[0].hex, stroke:'#000', 'stroke-opacity':'0.35' });
-      svg.appendChild(door);
+      const door = el('rect', { x:dx, y:y0, width:dw, height:(y1-y0), rx:3, fill:state.facade.hex, stroke:'#000', 'stroke-opacity':'0.35' });
+      parent.appendChild(door);
       facadeDoors.push({ el:door, x:dx, y:y0, w:dw, h:(y1-y0), side: i%2===0 ? 1 : -1 });
     }
   }
-  buildDoors(wallX0, wallX1, wallY0, wallY1, 3);
-  buildDoors(baseX0, baseX1, baseY0, baseY1, 4);
 
-  const handleGroup = el('g', { id:'handleGroup' });
-  svg.appendChild(handleGroup);
+  function makeWorktopRect(){
+    return el('rect', { x:baseX0-16, y:baseY0-24, width:(baseX1-baseX0)+32, height:22, rx:2, fill:'url(#worktopPattern-' + state.worktop.id + ')' });
+  }
+
+  function buildScene(roomKey){
+    clearGroup(sceneGroup);
+    facadeDoors = [];
+    worktopRect = null;
+    const cfg = ROOM_TYPES[roomKey];
+    if (cfg.layout === 'kitchen'){
+      buildDoorsInto(sceneGroup, wallX0, wallX1, wallY0, wallY1, 3);
+      worktopRect = makeWorktopRect();
+      sceneGroup.appendChild(worktopRect);
+      buildDoorsInto(sceneGroup, baseX0, baseX1, baseY0, baseY1, 4);
+    } else if (cfg.layout === 'vanity'){
+      worktopRect = makeWorktopRect();
+      sceneGroup.appendChild(worktopRect);
+      buildDoorsInto(sceneGroup, baseX0, baseX1, baseY0, baseY1, 3);
+    } else if (cfg.layout === 'tall'){
+      buildDoorsInto(sceneGroup, baseX0, baseX1, wallY0, baseY1, 4);
+    }
+    renderHandles(state.handle);
+  }
+
   function renderHandles(item){
     while (handleGroup.firstChild) handleGroup.removeChild(handleGroup.firstChild);
     if (item.shape === 'none') return;
@@ -453,7 +524,34 @@
       }
     });
   }
-  renderHandles(HANDLES[0]);
+
+  // ---------- Room type pills ----------
+  const roomPillsEl = document.getElementById('roomPills');
+  ROOM_ORDER.forEach((key) => {
+    const cfg = ROOM_TYPES[key];
+    const b = document.createElement('button');
+    b.className = 'pill' + (key === state.roomKey ? ' active' : '');
+    b.textContent = cfg.label;
+    b.addEventListener('click', () => {
+      if (state.roomKey === key) return;
+      state.roomKey = key;
+      [...roomPillsEl.children].forEach(c => c.classList.remove('active'));
+      b.classList.add('active');
+      applyRoomType();
+    });
+    roomPillsEl.appendChild(b);
+  });
+
+  function applyRoomType(){
+    const cfg = ROOM_TYPES[state.roomKey];
+    const worktopBlock = document.getElementById('worktopBlock');
+    worktopBlock.hidden = !cfg.hasWorktop;
+    if (cfg.hasWorktop) document.getElementById('worktopGroupLabel').textContent = cfg.worktopLabel;
+    document.getElementById('uploadGroupLabel').textContent = cfg.uploadLabel;
+    document.getElementById('uploadSpan').textContent = cfg.uploadSpan;
+    buildScene(state.roomKey);
+    updateAll();
+  }
 
   // ---------- Swatches ----------
   function buildColorSwatches(containerId, list, labelId, onPick, active0){
@@ -500,7 +598,7 @@
 
   buildPhotoSwatches('worktopSwatches', WORKTOPS, 'worktopName', (item) => {
     state.worktop = item;
-    worktopRect.setAttribute('fill', 'url(#worktopPattern-' + item.id + ')');
+    if (worktopRect) worktopRect.setAttribute('fill', 'url(#worktopPattern-' + item.id + ')');
   }, 0);
 
   const handleBtnsEl = document.getElementById('handleButtons');
@@ -527,24 +625,25 @@
   });
 
   function updateCombo(){
-    const line = state.facade.name.toLowerCase() + ', ' + state.worktop.name.toLowerCase() + ', ' + state.handle.name.toLowerCase();
+    const cfg = ROOM_TYPES[state.roomKey];
+    let line = cfg.label.toLowerCase() + ', ' + state.facade.name.toLowerCase();
+    if (cfg.hasWorktop) line += ', ' + state.worktop.name.toLowerCase();
+    line += ', ' + state.handle.name.toLowerCase();
     document.getElementById('comboLine').textContent = line;
     document.getElementById('modalSub').textContent = line;
   }
 
   // ---------- Price ----------
-  const TIER_RATES = {
-    base:     { fixed:40000, rate:25000 },
-    standard: { fixed:60000, rate:38000 },
-    premium:  { fixed:95000, rate:60000 },
-  };
   const TIER_RANK = { base:0, standard:1, premium:2 };
   const TIER_NAMES = ['base','standard','premium'];
   let width = 3;
 
   function updatePrice(){
-    const tierIdx = Math.max(TIER_RANK[state.facade.tier], TIER_RANK[state.worktop.tier]);
-    const { fixed, rate } = TIER_RATES[TIER_NAMES[tierIdx]];
+    const cfg = ROOM_TYPES[state.roomKey];
+    const facadeTierIdx = TIER_RANK[state.facade.tier];
+    const worktopTierIdx = cfg.hasWorktop ? TIER_RANK[state.worktop.tier] : 0;
+    const tierIdx = Math.max(facadeTierIdx, worktopTierIdx);
+    const { fixed, rate } = cfg.rates[TIER_NAMES[tierIdx]];
     let total = fixed + rate * width;
     if (state.handle.id !== 'none') total *= 1.04;
     const min = Math.round((total * 0.92) / 500) * 500;
@@ -607,15 +706,18 @@
   // ---------- Prompt ----------
   const promptTextEl = document.getElementById('promptText');
   function buildPrompt(){
-    return 'Insert this kitchen into image 0, photorealistically, keeping the room exactly as it is. ' +
-      'Do not change the walls, floor, window, doorway, lighting, or perspective — modify only the kitchen ' +
-      'cabinets, countertop, and handles.\n\n' +
-      'Facade: ' + state.facade.desc + '.\n' +
-      'Countertop: ' + state.worktop.desc + '.\n' +
-      'Handles: ' + state.handle.desc + '.\n\n' +
-      'Custom kitchen by ALIAN MEBLI (Kyiv). Photorealistic result.';
+    const cfg = ROOM_TYPES[state.roomKey];
+    let text = 'Insert ' + cfg.promptSubject + ' into image 0, photorealistically, keeping the room exactly as it is. ' +
+      'Do not change the walls, floor, window, doorway, lighting, or perspective — modify only ' + cfg.promptScope + '.';
+    if (cfg.promptExtra) text += ' ' + cfg.promptExtra;
+    text += '\n\nFacade: ' + state.facade.desc + '.\n';
+    if (cfg.hasWorktop) text += 'Countertop: ' + state.worktop.desc + '.\n';
+    text += 'Handles: ' + state.handle.desc + '.\n\nCustom furniture by ALIAN MEBLI (Kyiv). Photorealistic result.';
+    return text;
   }
   function refreshPrompt(){ promptTextEl.value = buildPrompt(); }
+
+  buildScene(state.roomKey);
   updateAll();
 
   // ---------- Resize helper (model requires input images <= 512x512) ----------
@@ -665,7 +767,7 @@
       if (typeof claude !== 'undefined' && claude && claude.use) {
         const downloads = await claude.use('downloads');
         if (downloads) {
-          await downloads.save({ filename: 'alian-kitchen.jpg', data: blob });
+          await downloads.save({ filename: 'alian-mebli.jpg', data: blob });
           downloadBtn.textContent = 'Збережено ✓';
           setTimeout(() => downloadBtn.textContent = old, 2000);
           return;
@@ -673,7 +775,7 @@
       }
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = 'alian-kitchen.jpg';
+      a.href = url; a.download = 'alian-mebli.jpg';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 4000);
       downloadBtn.textContent = 'Збережено ✓';
