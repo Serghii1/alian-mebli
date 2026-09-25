@@ -483,6 +483,14 @@
     .fab-btn{ width:auto; padding-inline:30px; }
   }
 
+  /* ---------- AI visualization promo ---------- */
+  .ai-promo{ background:var(--surface); }
+  .ai-promo-inner{
+    display:flex; flex-direction:column; align-items:flex-start; gap:20px;
+    max-width:640px;
+  }
+  .ai-promo-inner .btn{ margin-top:4px; }
+
   [hidden]{ display:none !important; }
 
   @media (prefers-reduced-motion: reduce){
@@ -498,6 +506,7 @@
       <li><a href="#about">Про нас</a></li>
       <li><a href="#portfolio">Портфоліо</a></li>
       <li><a href="#calculator">Калькулятор</a></li>
+      <li><a href="configurator.html">AI-візуалізація</a></li>
       <li><a href="#testimonials">Відгуки</a></li>
       <li><a href="#contact">Контакти</a></li>
     </ul>
@@ -514,6 +523,7 @@
     <a href="#about">Про нас</a>
     <a href="#portfolio">Портфоліо</a>
     <a href="#calculator">Калькулятор</a>
+    <a href="configurator.html">AI-візуалізація</a>
     <a href="#testimonials">Відгуки</a>
     <a href="#contact">Контакти</a>
   </nav>
@@ -707,6 +717,15 @@
           <button class="btn btn-primary full" id="calcToLead">Залишити заявку</button>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section id="ai-visual" class="ai-promo">
+    <div class="wrap ai-promo-inner">
+      <span class="eyebrow">Новинка</span>
+      <h2>Подивіться на свою кухню ще до замовлення</h2>
+      <p>Оберіть колір фасадів, стільницю та ручки, завантажте фото своєї кухні — і отримайте фотореалістичну AI-візуалізацію за лічені секунди, просто на сайті.</p>
+      <a href="configurator.html" class="btn btn-primary">Спробувати конфігуратор</a>
     </div>
   </section>
 
