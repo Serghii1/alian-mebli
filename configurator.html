@@ -279,7 +279,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0-4 4m4-4 4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
           <span id="uploadSpan">Натисніть або перетягніть фото своєї кухні</span>
           <small>JPG / PNG, лишається лише у вашому браузері</small>
-          <input type="file" id="roomPhoto" accept="image/*">
+          <input type="file" id="roomPhoto" accept="image/*,.heic,.heif">
         </label>
         <div class="preview" id="preview">
           <img id="previewImg" alt="Прев'ю фото кімнати">
@@ -331,6 +331,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script>
 (function(){
   const WORKER_URL = 'https://alian-kitchen-render.ignatovsergei02.workers.dev';
@@ -438,6 +439,12 @@
   floorGrad.appendChild(el('stop', { offset:'100%', 'stop-color':'#080807' }));
   defs.appendChild(floorGrad);
 
+  const mirrorGrad = el('linearGradient', { id:'mirrorGrad', x1:'0', y1:'0', x2:'1', y2:'1' });
+  mirrorGrad.appendChild(el('stop', { offset:'0%', 'stop-color':'#5f6d74' }));
+  mirrorGrad.appendChild(el('stop', { offset:'45%', 'stop-color':'#333d43' }));
+  mirrorGrad.appendChild(el('stop', { offset:'100%', 'stop-color':'#1a2024' }));
+  defs.appendChild(mirrorGrad);
+
   function imgPattern(id, href){
     const p = el('pattern', { id, patternUnits:'objectBoundingBox', patternContentUnits:'objectBoundingBox', width:'1', height:'1' });
     p.appendChild(el('image', { href, x:'0', y:'0', width:'1', height:'1', preserveAspectRatio:'xMidYMid slice' }));
@@ -500,6 +507,9 @@
       worktopRect = makeWorktopRect();
       sceneGroup.appendChild(worktopRect);
       buildDoorsInto(sceneGroup, baseX0, baseX1, baseY0, baseY1, 3);
+      const mx0 = 310, mx1 = 650, my0 = 150, my1 = 290;
+      sceneGroup.appendChild(el('rect', { x:mx0, y:my0, width:(mx1-mx0), height:(my1-my0), rx:8, fill:'#12181b', stroke:'#05080a', 'stroke-width':'3' }));
+      sceneGroup.appendChild(el('rect', { x:mx0+9, y:my0+9, width:(mx1-mx0)-18, height:(my1-my0)-18, rx:3, fill:'url(#mirrorGrad)' }));
     } else if (cfg.layout === 'tall'){
       buildDoorsInto(sceneGroup, baseX0, baseX1, wallY0, baseY1, 4);
     }
@@ -668,16 +678,41 @@
   const generateBtn = document.getElementById('generateBtn');
   let roomFile = null;
 
-  function handleFile(file){
+  async function handleFile(file){
     if (!file) return;
-    const looksLikeImage = file.type ? file.type.startsWith('image/') : /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name || '');
+    const name = (file.name || '').toLowerCase();
+    const isHeic = /image\/hei[cf]/i.test(file.type || '') || /\.(heic|heif)$/.test(name);
+    const looksLikeImage = isHeic || (file.type ? file.type.startsWith('image/') : /\.(jpe?g|png|webp|gif|bmp)$/i.test(name));
     if (!looksLikeImage) {
       previewMeta.textContent = 'Це не схоже на зображення — спробуйте JPG або PNG.';
       preview.classList.add('show');
       previewImg.removeAttribute('src');
+      roomFile = null;
+      generateBtn.disabled = true;
       return;
     }
-    roomFile = file;
+
+    let workFile = file;
+    if (isHeic) {
+      previewMeta.textContent = 'Обробляємо HEIC-фото…';
+      preview.classList.add('show');
+      previewImg.removeAttribute('src');
+      generateBtn.disabled = true;
+      if (typeof heic2any === 'undefined') {
+        previewMeta.textContent = 'Не вдалося завантажити HEIC-конвертер. Перевірте інтернет-з’єднання та спробуйте ще раз.';
+        return;
+      }
+      try {
+        const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
+        const convertedBlob = Array.isArray(converted) ? converted[0] : converted;
+        workFile = new File([convertedBlob], name.replace(/\.(heic|heif)$/, '.jpg'), { type: 'image/jpeg' });
+      } catch (err) {
+        previewMeta.textContent = 'Не вдалося обробити HEIC-фото. Спробуйте зберегти його як JPG і завантажити ще раз.';
+        return;
+      }
+    }
+
+    roomFile = workFile;
     const reader = new FileReader();
     reader.onerror = () => {
       previewMeta.textContent = 'Не вдалося прочитати файл. Спробуйте інше фото.';
@@ -686,11 +721,11 @@
     };
     reader.onload = (e) => {
       previewImg.src = e.target.result;
-      previewMeta.textContent = file.name + ' · ' + Math.round(file.size/1024) + ' КБ';
+      previewMeta.textContent = (file.name || 'фото') + ' · ' + Math.round(workFile.size/1024) + ' КБ';
       preview.classList.add('show');
       generateBtn.disabled = false;
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(workFile);
   }
   fileInput.addEventListener('change', (e) => {
     const f = e.target.files && e.target.files[0];
