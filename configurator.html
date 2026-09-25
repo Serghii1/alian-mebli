@@ -51,17 +51,18 @@
 
   /* ---------- Illustration ---------- */
   .illust-wrap{ position:relative; border-radius:10px; overflow:hidden; background:#0a0a08; }
-  .illust-wrap svg{ display:block; width:100%; height:auto; }
-  .sheen{
-    position:absolute; inset:0; pointer-events:none; mix-blend-mode:overlay; opacity:.5;
-    background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.32) 48%, transparent 62%);
-    background-size:260% 260%; animation: sheen-move 7s ease-in-out infinite;
+  .illust-wrap canvas{ display:block; width:100%; height:auto; touch-action:none; cursor:grab; }
+  .illust-wrap canvas:active{ cursor:grabbing; }
+  .illust-hint{
+    position:absolute; left:10px; bottom:10px; z-index:2; pointer-events:none;
+    font-size:11px; color:rgba(241,238,230,.65); background:rgba(10,10,8,.55);
+    padding:5px 10px; border-radius:999px; letter-spacing:.02em; backdrop-filter:blur(4px);
   }
-  @keyframes sheen-move{
-    0%,100%{ background-position:120% -20%; }
-    50%{ background-position:-20% 120%; }
+  .illust-loading{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:var(--ink-faint); font-size:12.5px; z-index:1; transition:opacity .3s;
   }
-  @media (prefers-reduced-motion: reduce){ .sheen{ animation:none; background-position:20% 20%; } }
+  .illust-loading[hidden]{ display:none; }
 
   .combo-line{ margin-top:14px; font-size:13px; color:var(--ink-dim); }
   .combo-line b{ color:var(--ink); font-weight:600; }
@@ -110,6 +111,19 @@
   .pill:hover{ border-color:var(--accent); color:var(--ink); }
   .pill.active{ border-color:var(--accent); background:var(--accent-dim); color:var(--ink); }
   .room-pills{ display:flex; flex-wrap:wrap; gap:8px; }
+
+  .toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .toggle{
+    position:relative; width:46px; height:26px; border-radius:999px; border:1px solid var(--line);
+    background:var(--surface-2); cursor:pointer; flex:none; transition:background .2s, border-color .2s;
+  }
+  .toggle::after{
+    content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%;
+    background:var(--ink-faint); transition:transform .25s cubic-bezier(.2,.7,.3,1), background .2s;
+  }
+  .toggle.on{ border-color:var(--accent); background:var(--accent-dim); }
+  .toggle.on::after{ transform:translateX(20px); background:var(--accent); }
+  .toggle-hint{ font-size:11.5px; color:var(--ink-faint); margin-top:6px; }
 
   .control-block + .control-block{ margin-top:20px; padding-top:20px; border-top:1px solid var(--line-soft); }
   .control-block[hidden]{ display:none; }
@@ -225,25 +239,31 @@
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">ALIAN MEBLI · перший прототип</div>
+    <div class="eyebrow">ALIAN MEBLI · 3D-кастомайзер</div>
     <h1>Підберіть вигляд меблів — і побачте їх у власному просторі</h1>
-    <p>Оберіть тип меблів, колір фасадів і фурнітуру, завантажте фото приміщення — і отримайте фотореалістичну
-      візуалізацію прямо тут, на сторінці.</p>
+    <p>Оберіть тип меблів, матеріал і колір фасаду, стільницю та ручки — 3D-модель одразу оновиться.
+      Потягніть, щоб трохи повернути, клацніть на дверцята, щоб відкрити, увімкніть підсвітку.
+      А потім за бажанням завантажте фото свого приміщення й отримайте AI-візуалізацію на його основі.</p>
   </header>
 
   <div class="layout">
     <div class="card">
-      <div class="illust-wrap">
-        <svg id="kitchenSvg" viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg"></svg>
-        <div class="sheen"></div>
+      <div class="illust-wrap" id="illustWrap">
+        <div class="illust-loading" id="illustLoading">Завантаження 3D-сцени…</div>
+        <div class="illust-hint">Потягніть — трохи повернути · Клік по дверцятах — відкрити</div>
       </div>
-      <p class="combo-line">Комплектація: <b id="comboLine">кухня, чорний онікс, дерево, без ручок</b></p>
+      <p class="combo-line">Комплектація: <b id="comboLine">кухня, ЛДСП, чорний онікс, дерево, без ручок</b></p>
     </div>
 
     <div class="card">
       <div class="control-block">
         <div class="group-label"><b>Тип меблів</b></div>
         <div class="room-pills" id="roomPills"></div>
+      </div>
+
+      <div class="control-block">
+        <div class="group-label"><b>Матеріал фасаду</b><span id="materialName">ЛДСП</span></div>
+        <div class="room-pills" id="materialPills"></div>
       </div>
 
       <div class="control-block">
@@ -259,6 +279,14 @@
       <div class="control-block">
         <div class="group-label"><b>Ручки</b><span id="handleName">Без ручок</span></div>
         <div class="style-row" id="handleButtons"></div>
+      </div>
+
+      <div class="control-block">
+        <div class="toggle-row">
+          <div class="group-label" style="margin-bottom:0;"><b>Підсвітка</b></div>
+          <div class="toggle" id="ledToggle" role="switch" aria-checked="false" aria-label="Увімкнути підсвітку"></div>
+        </div>
+        <p class="toggle-hint">Тепла LED-стрічка під верхніми шафами чи полицею — вмикається прямо на моделі.</p>
       </div>
 
       <div class="control-block">
@@ -291,14 +319,14 @@
       <div class="control-block">
         <button class="btn" id="generateBtn" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m4 17 5-5 4 4 3-3 4 4"/></svg>
-          Зробити візуалізацію
+          Зробити AI-візуалізацію
         </button>
         <details class="prompt-box">
           <summary>Показати технічний опис запиту</summary>
           <textarea id="promptText" readonly></textarea>
         </details>
-        <div class="note"><b>Як це працює:</b> фото обробляється напряму на нашому сервері (Cloudflare Workers AI) —
-          нікуди більше не завантажується і ніде не зберігається після генерації.</div>
+        <div class="note"><b>Як це працює:</b> 3D-модель ліворуч будується миттєво у вашому браузері. AI-візуалізація
+          (за бажанням) обробляється напряму на нашому сервері (Cloudflare Workers AI) — нікуди більше не завантажується.</div>
       </div>
     </div>
   </div>
@@ -331,17 +359,12 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script>
 (function(){
   const WORKER_URL = 'https://alian-kitchen-render.ignatovsergei02.workers.dev';
-  const NS = 'http://www.w3.org/2000/svg';
-  const svg = document.getElementById('kitchenSvg');
-  function el(tag, attrs){
-    const n = document.createElementNS(NS, tag);
-    for (const k in attrs) n.setAttribute(k, attrs[k]);
-    return n;
-  }
 
   // ---------- Furniture types (mirrors the main site's price calculator categories) ----------
   const ROOM_TYPES = {
@@ -373,14 +396,25 @@
   };
   const ROOM_ORDER = ['kitchen','wardrobe','bathroom','bedroom'];
 
-  // ---------- Palette (broad color range, not tied to a specific supplier) ----------
+  // ---------- Facade material types (grounded in what's actually sold in Ukraine: ЛДСП Egger/Kronospan/Swiss Krono,
+  // МДФ пофарбований матовий/глянцевий, шпон натурального дерева, акрилові глянцеві фасади) ----------
+  const MATERIAL_TYPES = {
+    ldsp:    { label:'ЛДСП',              roughness:0.55, metalness:0.05, tier:'base',     promptFinish:'laminated particleboard (ЛДСП) facade finish' },
+    mdfMat:  { label:'МДФ, матова фарба', roughness:0.78, metalness:0.02, tier:'standard', promptFinish:'matte painted MDF facade finish' },
+    mdfGloss:{ label:'МДФ, глянець',      roughness:0.12, metalness:0.05, tier:'standard', promptFinish:'high-gloss painted MDF facade finish' },
+    veneer:  { label:'Шпон (дерево)',     roughness:0.5,  metalness:0.02, tier:'premium',  promptFinish:'natural wood veneer facade finish', forceGrain:true },
+    acrylic: { label:'Акрил, глянець',    roughness:0.06, metalness:0.1,  tier:'premium',  promptFinish:'high-gloss acrylic facade finish' },
+  };
+  const MATERIAL_ORDER = ['ldsp','mdfMat','mdfGloss','veneer','acrylic'];
+
+  // ---------- Palette (broad color range; wood-tone entries can render with a grain texture) ----------
   const FACADES = [
     { id:'onyx',    name:'Чорний онікс',      hex:'#1c1c1a', tier:'standard', desc:'глибокий матовий чорний колір фасадів (онікс)' },
     { id:'ivory',   name:'Слонова кістка',    hex:'#efe8da', tier:'base',     desc:'теплий світлий колір фасадів слонової кістки' },
     { id:'snow',    name:'Білий сніг',        hex:'#f5f3ee', tier:'base',     desc:'чистий білий матовий колір фасадів' },
-    { id:'sand',    name:'Пісочний беж',      hex:'#d9c9a8', tier:'base',     desc:'пісочно-бежевий матовий колір фасадів' },
-    { id:'mocha',   name:'Мокко',             hex:'#7a5c46', tier:'standard', desc:'теплий коричневий колір фасадів мокко' },
-    { id:'walnut',  name:'Горіховий',         hex:'#5b3a22', tier:'premium',  desc:'глибокий горіховий коричневий колір фасадів' },
+    { id:'sand',    name:'Пісочний беж',      hex:'#d9c9a8', tier:'base',     desc:'пісочно-бежевий матовий колір фасадів', grain:true },
+    { id:'mocha',   name:'Мокко',             hex:'#7a5c46', tier:'standard', desc:'теплий коричневий колір фасадів мокко', grain:true },
+    { id:'walnut',  name:'Горіховий',         hex:'#5b3a22', tier:'premium',  desc:'глибокий горіховий коричневий колір фасадів', grain:true },
     { id:'olive',   name:'Оливковий',         hex:'#6d7357', tier:'standard', desc:'приглушений оливковий колір фасадів' },
     { id:'sage',    name:'Шавлієвий',         hex:'#a3b18a', tier:'standard', desc:'ніжний шавлієво-зелений колір фасадів' },
     { id:'emerald', name:'Смарагдовий',       hex:'#2f4d3a', tier:'premium',  desc:'насичений смарагдово-зелений колір фасадів' },
@@ -425,115 +459,259 @@
     profile:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="3" x2="12" y2="21"/></svg>',
   };
 
-  let state = { roomKey:'kitchen', facade: FACADES[0], worktop: WORKTOPS[0], handle: HANDLES[0] };
+  let state = { roomKey:'kitchen', materialKey:'ldsp', facade: FACADES[0], worktop: WORKTOPS[0], handle: HANDLES[0], led:false };
 
-  // ---------- Build SVG scene ----------
-  const defs = el('defs', {});
-  const wallGrad = el('linearGradient', { id:'wallGrad', x1:'0', y1:'0', x2:'0', y2:'1' });
-  wallGrad.appendChild(el('stop', { offset:'0%', 'stop-color':'#1a1912' }));
-  wallGrad.appendChild(el('stop', { offset:'100%', 'stop-color':'#0c0c0a' }));
-  defs.appendChild(wallGrad);
+  // =====================================================================
+  // 3D scene
+  // =====================================================================
+  const mount = document.getElementById('illustWrap');
+  const loadingEl = document.getElementById('illustLoading');
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0a08);
 
-  const floorGrad = el('linearGradient', { id:'floorGrad', x1:'0', y1:'0', x2:'0', y2:'1' });
-  floorGrad.appendChild(el('stop', { offset:'0%', 'stop-color':'#141310' }));
-  floorGrad.appendChild(el('stop', { offset:'100%', 'stop-color':'#080807' }));
-  defs.appendChild(floorGrad);
+  const camera = new THREE.PerspectiveCamera(38, 16/10, 0.1, 50);
+  const baseCamPos = new THREE.Vector3(0.15, 1.55, 4.6);
+  camera.position.copy(baseCamPos);
+  const camTarget = new THREE.Vector3(0, 1.15, 0);
+  camera.lookAt(camTarget);
 
-  const mirrorGrad = el('linearGradient', { id:'mirrorGrad', x1:'0', y1:'0', x2:'1', y2:'1' });
-  mirrorGrad.appendChild(el('stop', { offset:'0%', 'stop-color':'#5f6d74' }));
-  mirrorGrad.appendChild(el('stop', { offset:'45%', 'stop-color':'#333d43' }));
-  mirrorGrad.appendChild(el('stop', { offset:'100%', 'stop-color':'#1a2024' }));
-  defs.appendChild(mirrorGrad);
+  const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  mount.insertBefore(renderer.domElement, mount.firstChild);
 
-  function imgPattern(id, href){
-    const p = el('pattern', { id, patternUnits:'objectBoundingBox', patternContentUnits:'objectBoundingBox', width:'1', height:'1' });
-    p.appendChild(el('image', { href, x:'0', y:'0', width:'1', height:'1', preserveAspectRatio:'xMidYMid slice' }));
-    return p;
+  function sizeRenderer(){
+    const w = mount.clientWidth || 640;
+    const h = w * 10/16;
+    renderer.setSize(w, h, true);
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
   }
-  WORKTOPS.forEach(w => defs.appendChild(imgPattern('worktopPattern-' + w.id, w.img)));
-  svg.appendChild(defs);
+  sizeRenderer();
+  window.addEventListener('resize', sizeRenderer);
 
-  svg.appendChild(el('rect', { x:0,y:0,width:960,height:600, fill:'url(#wallGrad)' }));
-  svg.appendChild(el('rect', { x:0,y:480,width:960,height:120, fill:'url(#floorGrad)' }));
-  svg.appendChild(el('rect', { x:430, y:60, width:100, height:70, rx:4, fill:'#141310', stroke:'#000', 'stroke-opacity':'0.3' }));
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.target.copy(camTarget);
+  controls.enableZoom = false;
+  controls.enablePan = false;
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.rotateSpeed = 0.5;
+  controls.minAzimuthAngle = -0.55;
+  controls.maxAzimuthAngle = 0.55;
+  controls.minPolarAngle = Math.PI/2 - 0.42;
+  controls.maxPolarAngle = Math.PI/2 + 0.16;
+  controls.update();
 
-  const wallY0 = 70, wallY1 = 230, wallX0 = 130, wallX1 = 830;
-  svg.appendChild(el('rect', { x:wallX0-6, y:wallY0-6, width:(wallX1-wallX0)+12, height:(wallY1-wallY0)+12, rx:5, fill:'#111009' }));
+  scene.add(new THREE.AmbientLight(0xfff3e0, 0.55));
+  const keyLight = new THREE.DirectionalLight(0xfff0da, 0.95);
+  keyLight.position.set(2.4, 3.4, 3.2);
+  scene.add(keyLight);
+  const fillLight = new THREE.DirectionalLight(0xbfd4ff, 0.28);
+  fillLight.position.set(-2.6, 1.6, 1.8);
+  scene.add(fillLight);
 
-  svg.appendChild(el('rect', { x:wallX0-10, y:wallY1+4, width:(wallX1-wallX0)+20, height:56, fill:'#17160f' }));
-  for (let x=wallX0-10; x<wallX1+10; x+=28){
-    svg.appendChild(el('line', { x1:x, y1:wallY1+4, x2:x, y2:wallY1+60, stroke:'#0b0b08', 'stroke-width':'1', opacity:'0.5' }));
+  // Static room shell
+  const wallMat = new THREE.MeshStandardMaterial({ color:0x1a1912, roughness:0.95 });
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.4), wallMat);
+  wall.position.set(0, 1.5, -0.62);
+  scene.add(wall);
+  const floorMat = new THREE.MeshStandardMaterial({ color:0x141310, roughness:0.85 });
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(7, 4), floorMat);
+  floor.rotation.x = -Math.PI/2;
+  floor.position.set(0, 0, 1.3);
+  scene.add(floor);
+
+  const textureLoader = new THREE.TextureLoader();
+  const worktopTextures = {};
+  WORKTOPS.forEach(w => {
+    const tex = textureLoader.load(w.img);
+    tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
+    worktopTextures[w.id] = tex;
+  });
+
+  function grainTexture(hex){
+    const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = hex; ctx.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 46; i++){
+      const y = Math.random() * 256;
+      ctx.strokeStyle = 'rgba(0,0,0,' + (0.035 + Math.random() * 0.06).toFixed(3) + ')';
+      ctx.lineWidth = 0.7 + Math.random() * 1.8;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      for (let x = 0; x <= 256; x += 14){ ctx.lineTo(x, y + Math.sin(x * 0.045 + i) * 3.2); }
+      ctx.stroke();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+  }
+  const grainCache = {};
+  function facadeMaterial(){
+    const mt = MATERIAL_TYPES[state.materialKey];
+    const useGrain = mt.forceGrain || (mt.roughness >= 0.4 && state.facade.grain);
+    const params = { color: state.facade.hex, roughness: mt.roughness, metalness: mt.metalness };
+    if (useGrain){
+      const key = state.materialKey + '-' + state.facade.id;
+      if (!grainCache[key]) grainCache[key] = grainTexture(state.facade.hex);
+      params.map = grainCache[key];
+      params.color = 0xffffff;
+    }
+    return new THREE.MeshStandardMaterial(params);
   }
 
-  const baseY0 = 330, baseY1 = 480, baseX0 = 110, baseX1 = 850;
-  svg.appendChild(el('rect', { x:baseX0-6, y:baseY0-6, width:(baseX1-baseX0)+12, height:(baseY1-baseY0)+12+34, rx:5, fill:'#111009' }));
-  svg.appendChild(el('rect', { x:baseX0+6, y:baseY1+28, width:(baseX1-baseX0)-12, height:14, fill:'#080706' }));
+  // Door group: pivot at hinge edge so it swings correctly; interactive via raycaster
+  const doorPivots = [];
+  function makeDoor(x0, x1, y0, y1, depth, z, hingeOnLeft, material){
+    const w = x1 - x0, h = y1 - y0;
+    const pivot = new THREE.Group();
+    pivot.position.set(hingeOnLeft ? x0 : x1, 0, z);
+    const geo = new THREE.BoxGeometry(w, h, depth);
+    const mesh = new THREE.Mesh(geo, material);
+    mesh.position.set((hingeOnLeft ? w/2 : -w/2), (y0+y1)/2, depth/2);
+    pivot.add(mesh);
+    pivot.userData = { open:false, target:0, hingeOnLeft, doorMesh:mesh, w, h };
+    scene.add(pivot);
+    doorPivots.push(pivot);
+    return { pivot, mesh, x0, x1, y0, y1, depth, z, hingeOnLeft };
+  }
 
-  const sceneGroup = el('g', { id:'sceneGroup' });
-  svg.appendChild(sceneGroup);
-  const handleGroup = el('g', { id:'handleGroup' });
-  svg.appendChild(handleGroup);
+  function addHandle(doorInfo, item){
+    if (!item || item.shape === 'none') return;
+    const { mesh, w, h } = { mesh: doorInfo.pivot.userData.doorMesh, w: doorInfo.pivot.userData.w, h: doorInfo.pivot.userData.h };
+    const edgeSign = doorInfo.hingeOnLeft ? 1 : -1;
+    const localEdgeX = (doorInfo.hingeOnLeft ? w/2 : -w/2) - edgeSign * 0.045;
+    const localY = (doorInfo.y0 + doorInfo.y1)/2 - mesh.position.y;
+    const localZ = doorInfo.depth/2 + 0.015;
+    const mat = new THREE.MeshStandardMaterial({ color: item.color || '#111', roughness:0.35, metalness:0.55 });
+    let hMesh;
+    if (item.shape === 'bar'){
+      hMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, h*0.42, 10), mat);
+    } else if (item.shape === 'knob'){
+      hMesh = new THREE.Mesh(new THREE.SphereGeometry(0.017, 12, 12), mat);
+    } else if (item.shape === 'arc'){
+      hMesh = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.007, 8, 16, Math.PI), mat);
+      hMesh.rotation.z = Math.PI/2 * (doorInfo.hingeOnLeft ? -1 : 1);
+    } else if (item.shape === 'profile'){
+      hMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, h*0.9, 8), mat);
+    }
+    if (!hMesh) return;
+    hMesh.position.set(localEdgeX, localY, localZ);
+    mesh.add(hMesh);
+  }
 
-  let facadeDoors = [];
-  let worktopRect = null;
+  let ledStrip = null, ledLight = null;
+  function addLed(x0, x1, y, z){
+    const w = Math.max(0.1, x1 - x0);
+    const geo = new THREE.BoxGeometry(w * 0.92, 0.028, 0.05);
+    const mat = new THREE.MeshStandardMaterial({ color:0x2a2013, emissive:0xffcf8a, emissiveIntensity:0, roughness:0.6 });
+    const strip = new THREE.Mesh(geo, mat);
+    strip.position.set((x0+x1)/2, y, z);
+    scene.add(strip);
+    const light = new THREE.PointLight(0xffd9a0, 0, 2.6, 2);
+    light.position.set((x0+x1)/2, y - 0.06, z + 0.2);
+    scene.add(light);
+    ledStrip = strip; ledLight = light;
+  }
+  function applyLed(){
+    if (!ledStrip) return;
+    ledStrip.material.emissiveIntensity = state.led ? 1.7 : 0;
+    ledLight.intensity = state.led ? 1.0 : 0;
+  }
 
-  function clearGroup(g){ while (g.firstChild) g.removeChild(g.firstChild); }
+  let mirrorMesh = null;
+  const doorInfos = [];
 
-  function buildDoorsInto(parent, x0, x1, y0, y1, count){
-    const gap = 6, totalW = x1-x0, dw = (totalW - gap*(count-1))/count;
-    for (let i=0;i<count;i++){
-      const dx = x0 + i*(dw+gap);
-      const door = el('rect', { x:dx, y:y0, width:dw, height:(y1-y0), rx:3, fill:state.facade.hex, stroke:'#000', 'stroke-opacity':'0.35' });
-      parent.appendChild(door);
-      facadeDoors.push({ el:door, x:dx, y:y0, w:dw, h:(y1-y0), side: i%2===0 ? 1 : -1 });
+  function clearSceneObjects(){
+    doorPivots.forEach(p => scene.remove(p));
+    doorPivots.length = 0;
+    doorInfos.length = 0;
+    if (mirrorMesh){ scene.remove(mirrorMesh); mirrorMesh = null; }
+    if (ledStrip){ scene.remove(ledStrip); ledStrip = null; }
+    if (ledLight){ scene.remove(ledLight); ledLight = null; }
+  }
+
+  function buildDoorRow(x0, x1, y0, y1, depth, z, count, mat){
+    const gap = 0.012;
+    const totalW = x1 - x0;
+    const dw = (totalW - gap*(count-1)) / count;
+    for (let i = 0; i < count; i++){
+      const dx0 = x0 + i*(dw+gap);
+      const dx1 = dx0 + dw;
+      const hingeOnLeft = i % 2 === 0;
+      const info = makeDoor(dx0, dx1, y0, y1, depth, z, hingeOnLeft, mat);
+      doorInfos.push(info);
     }
   }
 
-  function makeWorktopRect(){
-    return el('rect', { x:baseX0-16, y:baseY0-24, width:(baseX1-baseX0)+32, height:22, rx:2, fill:'url(#worktopPattern-' + state.worktop.id + ')' });
-  }
+  const worktopMeshes = [];
+  function buildScene3D(){
+    clearSceneObjects();
+    worktopMeshes.forEach(m => scene.remove(m));
+    worktopMeshes.length = 0;
+    const cfg = ROOM_TYPES[state.roomKey];
+    const mat = facadeMaterial();
+    const wtTex = worktopTextures[state.worktop.id];
+    const worktopMat = new THREE.MeshStandardMaterial({ map: wtTex, roughness:0.4, metalness:0.05 });
 
-  function buildScene(roomKey){
-    clearGroup(sceneGroup);
-    facadeDoors = [];
-    worktopRect = null;
-    const cfg = ROOM_TYPES[roomKey];
     if (cfg.layout === 'kitchen'){
-      buildDoorsInto(sceneGroup, wallX0, wallX1, wallY0, wallY1, 3);
-      worktopRect = makeWorktopRect();
-      sceneGroup.appendChild(worktopRect);
-      buildDoorsInto(sceneGroup, baseX0, baseX1, baseY0, baseY1, 4);
+      buildDoorRow(-1.7, 1.7, 1.5, 2.3, 0.32, 0, 3, mat);
+      const wt = new THREE.Mesh(new THREE.BoxGeometry(3.55, 0.05, 0.62), worktopMat);
+      wt.position.set(0, 0.93, 0.18);
+      scene.add(wt); worktopMeshes.push(wt);
+      buildDoorRow(-1.75, 1.75, 0, 0.9, 0.55, 0.32, 4, mat);
+      addLed(-1.7, 1.7, 1.46, -0.02);
     } else if (cfg.layout === 'vanity'){
-      worktopRect = makeWorktopRect();
-      sceneGroup.appendChild(worktopRect);
-      buildDoorsInto(sceneGroup, baseX0, baseX1, baseY0, baseY1, 3);
-      const mx0 = 310, mx1 = 650, my0 = 150, my1 = 290;
-      sceneGroup.appendChild(el('rect', { x:mx0, y:my0, width:(mx1-mx0), height:(my1-my0), rx:8, fill:'#12181b', stroke:'#05080a', 'stroke-width':'3' }));
-      sceneGroup.appendChild(el('rect', { x:mx0+9, y:my0+9, width:(mx1-mx0)-18, height:(my1-my0)-18, rx:3, fill:'url(#mirrorGrad)' }));
+      const wt = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.05, 0.5), worktopMat);
+      wt.position.set(0, 0.93, 0.12);
+      scene.add(wt); worktopMeshes.push(wt);
+      buildDoorRow(-1.65, 1.65, 0, 0.9, 0.45, 0.12, 3, mat);
+      const mirrorGeo = new THREE.PlaneGeometry(1.5, 0.85);
+      const mirrorMat = new THREE.MeshPhysicalMaterial({ color:0x39434a, roughness:0.05, metalness:0.9, clearcoat:1 });
+      mirrorMesh = new THREE.Mesh(mirrorGeo, mirrorMat);
+      mirrorMesh.position.set(0, 1.75, -0.58);
+      scene.add(mirrorMesh);
+      addLed(-0.75, 0.75, 1.3, -0.56);
     } else if (cfg.layout === 'tall'){
-      buildDoorsInto(sceneGroup, baseX0, baseX1, wallY0, baseY1, 4);
+      buildDoorRow(-1.7, 1.7, 0, 2.28, 0.6, 0, 4, mat);
+      addLed(-1.7, 1.7, 2.32, -0.02);
     }
-    renderHandles(state.handle);
+
+    doorInfos.forEach(info => addHandle(info, state.handle));
+    applyLed();
   }
 
-  function renderHandles(item){
-    while (handleGroup.firstChild) handleGroup.removeChild(handleGroup.firstChild);
-    if (item.shape === 'none') return;
-    facadeDoors.forEach(d => {
-      const edgeX = d.side === 1 ? d.x + d.w - 14 : d.x + 14;
-      if (item.shape === 'bar'){
-        handleGroup.appendChild(el('rect', { x:edgeX-2, y:d.y+d.h*0.28, width:4, height:d.h*0.44, rx:2, fill:item.color }));
-      } else if (item.shape === 'knob'){
-        const ky = d.y > baseY0 ? d.y + 14 : d.y + d.h - 14;
-        handleGroup.appendChild(el('circle', { cx:edgeX, cy:ky, r:5, fill:item.color }));
-      } else if (item.shape === 'arc'){
-        const y1 = d.y + d.h*0.32, y2 = d.y + d.h*0.68;
-        handleGroup.appendChild(el('path', { d:`M ${edgeX-6} ${y1} C ${edgeX+6} ${y1+6}, ${edgeX+6} ${y2-6}, ${edgeX-6} ${y2}`, stroke:item.color, 'stroke-width':'2.4', fill:'none' }));
-      } else if (item.shape === 'profile'){
-        handleGroup.appendChild(el('rect', { x:edgeX-1.5, y:d.y+4, width:3, height:d.h-8, fill:item.color }));
-      }
+  // ---------- Door open/close interaction ----------
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  renderer.domElement.addEventListener('click', (e) => {
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
+    const meshes = doorInfos.map(i => i.pivot.userData.doorMesh);
+    const hits = raycaster.intersectObjects(meshes, false);
+    if (!hits.length) return;
+    const hitMesh = hits[0].object;
+    const info = doorInfos.find(i => i.pivot.userData.doorMesh === hitMesh);
+    if (!info) return;
+    const ud = info.pivot.userData;
+    ud.open = !ud.open;
+    ud.target = ud.open ? (ud.hingeOnLeft ? -1.05 : 1.05) : 0;
+  });
+
+  function animate(){
+    requestAnimationFrame(animate);
+    doorPivots.forEach(p => {
+      const ud = p.userData;
+      p.rotation.y += (ud.target - p.rotation.y) * 0.14;
     });
+    controls.update();
+    renderer.render(scene, camera);
   }
+  buildScene3D();
+  animate();
+  loadingEl.hidden = true;
 
   // ---------- Room type pills ----------
   const roomPillsEl = document.getElementById('roomPills');
@@ -552,6 +730,25 @@
     roomPillsEl.appendChild(b);
   });
 
+  // ---------- Material type pills ----------
+  const materialPillsEl = document.getElementById('materialPills');
+  MATERIAL_ORDER.forEach((key) => {
+    const mt = MATERIAL_TYPES[key];
+    const b = document.createElement('button');
+    b.className = 'pill' + (key === state.materialKey ? ' active' : '');
+    b.textContent = mt.label;
+    b.addEventListener('click', () => {
+      if (state.materialKey === key) return;
+      state.materialKey = key;
+      [...materialPillsEl.children].forEach(c => c.classList.remove('active'));
+      b.classList.add('active');
+      document.getElementById('materialName').textContent = mt.label;
+      buildScene3D();
+      updateAll();
+    });
+    materialPillsEl.appendChild(b);
+  });
+
   function applyRoomType(){
     const cfg = ROOM_TYPES[state.roomKey];
     const worktopBlock = document.getElementById('worktopBlock');
@@ -559,7 +756,7 @@
     if (cfg.hasWorktop) document.getElementById('worktopGroupLabel').textContent = cfg.worktopLabel;
     document.getElementById('uploadGroupLabel').textContent = cfg.uploadLabel;
     document.getElementById('uploadSpan').textContent = cfg.uploadSpan;
-    buildScene(state.roomKey);
+    buildScene3D();
     updateAll();
   }
 
@@ -603,12 +800,12 @@
 
   buildColorSwatches('facadeSwatches', FACADES, 'facadeName', (item) => {
     state.facade = item;
-    facadeDoors.forEach(d => d.el.setAttribute('fill', item.hex));
+    buildScene3D();
   }, 0);
 
   buildPhotoSwatches('worktopSwatches', WORKTOPS, 'worktopName', (item) => {
     state.worktop = item;
-    if (worktopRect) worktopRect.setAttribute('fill', 'url(#worktopPattern-' + item.id + ')');
+    buildScene3D();
   }, 0);
 
   const handleBtnsEl = document.getElementById('handleButtons');
@@ -625,20 +822,31 @@
     b.appendChild(label);
     b.addEventListener('click', () => {
       state.handle = item;
-      renderHandles(item);
       [...handleBtnsEl.children].forEach(c=>c.classList.remove('active'));
       b.classList.add('active');
       document.getElementById('handleName').textContent = item.name;
+      buildScene3D();
       updateAll();
     });
     handleBtnsEl.appendChild(b);
   });
 
+  const ledToggleEl = document.getElementById('ledToggle');
+  ledToggleEl.addEventListener('click', () => {
+    state.led = !state.led;
+    ledToggleEl.classList.toggle('on', state.led);
+    ledToggleEl.setAttribute('aria-checked', String(state.led));
+    applyLed();
+    updateAll();
+  });
+
   function updateCombo(){
     const cfg = ROOM_TYPES[state.roomKey];
-    let line = cfg.label.toLowerCase() + ', ' + state.facade.name.toLowerCase();
+    const mt = MATERIAL_TYPES[state.materialKey];
+    let line = cfg.label.toLowerCase() + ', ' + mt.label.toLowerCase() + ', ' + state.facade.name.toLowerCase();
     if (cfg.hasWorktop) line += ', ' + state.worktop.name.toLowerCase();
     line += ', ' + state.handle.name.toLowerCase();
+    if (state.led) line += ', з підсвіткою';
     document.getElementById('comboLine').textContent = line;
     document.getElementById('modalSub').textContent = line;
   }
@@ -650,12 +858,15 @@
 
   function updatePrice(){
     const cfg = ROOM_TYPES[state.roomKey];
+    const mt = MATERIAL_TYPES[state.materialKey];
     const facadeTierIdx = TIER_RANK[state.facade.tier];
+    const materialTierIdx = TIER_RANK[mt.tier];
     const worktopTierIdx = cfg.hasWorktop ? TIER_RANK[state.worktop.tier] : 0;
-    const tierIdx = Math.max(facadeTierIdx, worktopTierIdx);
+    const tierIdx = Math.max(facadeTierIdx, materialTierIdx, worktopTierIdx);
     const { fixed, rate } = cfg.rates[TIER_NAMES[tierIdx]];
     let total = fixed + rate * width;
     if (state.handle.id !== 'none') total *= 1.04;
+    if (state.led) total += 3500;
     const min = Math.round((total * 0.92) / 500) * 500;
     const max = Math.round((total * 1.12) / 500) * 500;
     document.getElementById('priceOut').textContent = min.toLocaleString('uk-UA') + ' – ' + max.toLocaleString('uk-UA') + ' ₴';
@@ -742,17 +953,23 @@
   const promptTextEl = document.getElementById('promptText');
   function buildPrompt(){
     const cfg = ROOM_TYPES[state.roomKey];
+    const mt = MATERIAL_TYPES[state.materialKey];
     let text = 'Insert ' + cfg.promptSubject + ' into image 0, photorealistically, keeping the room exactly as it is. ' +
       'Do not change the walls, floor, window, doorway, lighting, or perspective — modify only ' + cfg.promptScope + '.';
     if (cfg.promptExtra) text += ' ' + cfg.promptExtra;
-    text += '\n\nFacade: ' + state.facade.desc + '.\n';
+    text += '\n\nFacade material: ' + mt.promptFinish + '.\n';
+    text += 'Facade color: ' + state.facade.desc + '.\n';
     if (cfg.hasWorktop) text += 'Countertop: ' + state.worktop.desc + '.\n';
-    text += 'Handles: ' + state.handle.desc + '.\n\nCustom furniture by ALIAN MEBLI (Kyiv). Photorealistic result.';
+    text += 'Handles: ' + state.handle.desc + '.\n';
+    if (state.led){
+      const ledPlace = cfg.hasWorktop ? 'under the upper cabinets or shelf, softly illuminating the countertop below' : 'along the top edge of the cabinet, softly grazing the doors below';
+      text += 'Add warm white LED strip lighting ' + ledPlace + '.\n';
+    }
+    text += '\nCustom furniture by ALIAN MEBLI (Kyiv). Photorealistic result.';
     return text;
   }
   function refreshPrompt(){ promptTextEl.value = buildPrompt(); }
 
-  buildScene(state.roomKey);
   updateAll();
 
   // ---------- Resize helper (model requires input images <= 512x512) ----------
